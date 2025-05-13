@@ -1,31 +1,37 @@
 # 🥗 FoodStats
 
-A modern web application for tracking nutritional information and discovering healthy recipes.
+A modern desktop application for tracking nutritional information and discovering healthy recipes. Built with Electron for a seamless desktop experience.
 
 ## 📋 Features
 
 - **Real-time Nutrition Tracking**
-    - Add ingredients with quantities
-    - Auto-complete ingredient suggestions
-    - Calculate total nutritional values
-    - Track calories, proteins, carbs, fats, and fiber
+  - Add ingredients with quantities
+  - Smart auto-complete ingredient suggestions
+  - Calculate total nutritional values
+  - Track calories, proteins, carbs, fats, and fiber
+
+- **Desktop Integration**
+  - Native desktop application
+  - Automatic server management
+  - System tray integration
+  - Dark/Light mode with persistence
 
 - **Responsive Design**
-    - Mobile-friendly interface
-    - Desktop optimized layout
-    - Dark/Light mode support
+  - Mobile-friendly interface
+  - Desktop optimized layout
+  - Cross-platform support
 
 - **Recipe Resources**
-    - Healthy recipe suggestions
-    - Nutritional recommendations
-    - Lifestyle tips
+  - Healthy recipe suggestions
+  - Nutritional recommendations
+  - Lifestyle tips
 
 ## 🚀 Tech Stack
 
 ### Frontend
-- HTML5
-- CSS3 (with responsive design)
-- JavaScript (Vanilla)
+- HTML5/CSS3
+- Vanilla JavaScript
+- Electron
 - Custom dark mode implementation
 
 ### Backend
@@ -35,25 +41,41 @@ A modern web application for tracking nutritional information and discovering he
 
 ## 🛠 Installation
 
+### Development Setup
+
 1. **Clone the repository**
 ```bash
 git clone https://github.com/yourusername/FoodStats.git
 cd FoodStats
 ```
 
-2. **Start the backend server**
+2. **Install dependencies**
 ```bash
-cd backend
-go run main.go
+npm install
 ```
 
-3. **Open the frontend**
-- Navigate to the `frontend` directory
-- Open `index.html` in your web browser
-- Or use a local server:
+3. **Build the backend**
 ```bash
-python -m http.server 8000
+cd backend
+go build -o FoodStats.exe
+cd ..
 ```
+
+4. **Run in development mode**
+```bash
+npm start
+```
+
+### Production Build
+
+1. **Build the application**
+```bash
+npm run dist
+```
+
+2. **Install the application**
+- Navigate to `dist` folder
+- Run the installer (`.exe` for Windows)
 
 ## 🌐 API Endpoints
 
@@ -66,8 +88,22 @@ python -m http.server 8000
 
 ## 📱 Screenshots
 
-![Alt text](/README%20RESOURCES/img.png)
-![Alt text](/README%20RESOURCES/img_1.png)
+![FoodStats Main Interface](/README%20RESOURCES/img.png)
+![FoodStats Dark Mode](/README%20RESOURCES/img_1.png)
+
+## 💻 System Requirements
+
+- Windows 10 or later
+- 4GB RAM minimum
+- 500MB disk space
+- Internet connection for installation
+
+## 🔧 Configuration
+
+The application stores its settings in:
+- Dark mode preference: LocalStorage
+- Database: SQLite file in the application directory
+- Server: Automatically managed by Electron
 
 ## 📄 License
 
@@ -85,6 +121,22 @@ MIT License - see [LICENSE](LICENSE) for details
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## 🐛 Bug Reports
+
+Please report any issues through:
+1. GitHub Issues
+2. Pull Requests
+3. Email at [your-email]
+
 ## 🌟 Show your support
 
 Give a ⭐️ if this project helped you!
+
+## 📝 Changelog
+
+### Version 1.0.0
+- Initial release
+- Desktop application support
+- Dark mode with persistence
+- Real-time ingredient suggestions
+- Nutritional calculations
