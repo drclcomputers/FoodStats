@@ -37,7 +37,7 @@ func InitServer() {
 	http.HandleFunc("/api/delete-ingredient", deleteIngredientHandler)
 	http.HandleFunc("/api/suggestions", suggestionHandler)
 
-	log.Println("Server started on http://localhost:8080")
+	log.Println("Server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
