@@ -1,0 +1,44 @@
+{
+  "name": "foodstats-desktop",
+  "version": "1.0.0",
+  "description": "Desktop application for tracking nutritional information",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "author": "@drclcomputers",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.drclcomputers.foodstats",
+    "productName": "FoodStats",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "frontend/**/*",
+      "backend/**/*",
+      "main.js"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "README RESOURCES/icon.png"
+    },
+    "extraResources": [
+      {
+        "from": "backend/internal/database/nutrition_data.db",
+        "to": "backend/database/nutrition_data.db"
+      },
+      {
+        "from": "backend/FoodStats.exe",
+        "to": "backend/FoodStats.exe"
+      }
+    ]
+  }
+}

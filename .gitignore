@@ -1,2 +1,5 @@
-*.exe
+node_modules/
+dist/
+backend/FoodStats.exe
 *.zip
+.DS_Store
