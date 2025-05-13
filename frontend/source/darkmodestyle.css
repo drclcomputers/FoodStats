@@ -1,0 +1,113 @@
+body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode h1 {
+    color: #90caf9;
+}
+
+body.dark-mode h2 {
+    color: #80cbc4;
+}
+
+body.dark-mode input,
+body.dark-mode button {
+    background-color: #1e1e1e;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+body.dark-mode input:focus {
+    border-color: #80cbc4;
+    box-shadow: 0 0 5px rgba(128, 203, 196, 0.4);
+}
+
+body.dark-mode button {
+    background-color: #1565c0;
+}
+
+body.dark-mode button:hover {
+    background-color: #0d47a1;
+}
+
+body.dark-mode #ingredientList li {
+    background: #1e1e1e;
+    color: #eee;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .delete-btn {
+    background: #ef5350;
+}
+
+body.dark-mode .delete-btn:hover {
+    background: #c62828;
+}
+
+body.dark-mode #totalOutput {
+    background: #263238;
+    color: #a5d6a7;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .footer {
+    background: #1e1e1e;
+}
+
+body.dark-mode .footer button {
+    background: #333;
+    color: #fff;
+}
+
+body.dark-mode .footer button:hover {
+    background: #444;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+body.dark-mode .navbar {
+    background-color: #1a1a1a;
+}
+
+body.dark-mode .nav-item {
+    color: #e0e0e0;
+}
+
+body.dark-mode .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .nav-item.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .nav-item.active::after {
+    background-color: #80cbc4;
+}
+
+body.dark-mode .recommendation {
+    background: #1e1e1e;
+    color: #f0f0f0;
+}
+
+body.dark-mode .recommendation h2 {
+    color: #52ab98;
+}
+
+body.dark-mode .footer {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+}
+
+body.dark-mode .suggestions-list {
+    background-color: #333333;
+}
+
+body.dark-mode .suggestions-list li:hover {
+    background-color: #444444;
+}
+

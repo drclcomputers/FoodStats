@@ -1,0 +1,24 @@
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
+package config
+
+type TemplateIngredient struct {
+	Name  string  `json:"name"`
+	Grams float64 `json:"grams"`
+}
+
+type NutritionalInfo struct {
+	Calories float64 `json:"calories"`
+	Proteins float64 `json:"proteins"`
+	Carbs    float64 `json:"carbs"`
+	Fats     float64 `json:"fats"`
+	Fiber    float64 `json:"fiber"`
+}
+
+type Ingredient struct {
+	TemplateIngredient
+	NutritionalInfo
+}

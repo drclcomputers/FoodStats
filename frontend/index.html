@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FoodStats</title>
+    <link href="source/mystyle.css" rel="stylesheet">
+    <link href="source/mobile.css" rel="stylesheet">
+    <link href="source/darkmodestyle.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar">
+    <ul class="nav-list">
+        <li><a href="index.html" class="nav-item active">Home</a></li>
+        <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
+        <li><a href="healthy-recipes.html" class="nav-item">Healthy Recipes</a></li>
+    </ul>
+</nav>
+<h1>FoodStats</h1>
+
+<form id="ingredientForm">
+    <input type="text" id="name" name="name" placeholder="Ingredient...">
+    <input type="number" id="grams" placeholder="Grams" required/>
+    <button type="submit">Add Ingredient</button>
+    <ul id="suggestions" class="suggestions-list"></ul>
+</form>
+
+<h2>Ingredients List</h2>
+<ul id="ingredientList"></ul>
+
+<div class="actions">
+    <button onclick="resetIngredients()">Reset</button>
+    <button onclick="calculateTotal()">Calculate</button>
+</div>
+
+<h2>Total Nutrition</h2>
+<pre id="totalOutput">Click "Calculate" to see total nutrition.</pre>
+
+<footer class="footer">
+    <pre>&copy;2025 @drclcomputers |  </pre>
+    <button id="toggleDarkMode">🌙 Toggle Dark Mode</button>
+</footer>
+
+<script src="source/main.js"></script>
+<script src="source/suggestions.js"></script>
+<script src="source/darkmodescript.js"></script>
+</body>
+</html>
