@@ -1,7 +1,5 @@
 console.log("main.js loaded");
-const API_BASE = process.env.NODE_ENV === 'production'
-    ? 'https://foodstats.railway.app/api'
-    : 'http://localhost:8080/api';
+const API_BASE = "http://localhost:8080/api";
 
 document.getElementById("ingredientForm").addEventListener("submit", function(e) {
     e.preventDefault();
@@ -106,7 +104,7 @@ ${data.name} (${data.grams}g):
 
 
 function resetIngredients() {
-    fetch("${API_BASE}/reset`, {
+    fetch(`${API_BASE}/reset`, {
         method: "DELETE"
     })
         .then(res => res.json())
