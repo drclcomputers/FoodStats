@@ -18,10 +18,26 @@ var DB *sql.DB
 
 func InitDB() {
 	var err error
-	dbPath := "./internal/database/nutrition_data.db"
+	possiblePaths := []string{
+		"nutrition_data.db",
+		"./database/nutrition_data.db",
+		"./internal/database/nutrition_data.db",
+		"./backend/database/nutrition_data.db",
+		"./resources/backend/database/nutrition_data.db",
+		"../backend/database/nutrition_data.db",
+		"./database/nutrition_data.db",
+	}
 
-	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		dbPath = "./backend/database/nutrition_data.db"
+	var dbPath string
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			dbPath = path
+			break
+		}
+	}
+
+	if dbPath == "" {
+		log.Fatal("Could not find database file in any location")
 	}
 
 	DB, err = sql.Open("sqlite3", dbPath)

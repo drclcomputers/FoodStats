@@ -21,24 +21,24 @@
     "directories": {
       "output": "dist"
     },
-    "files": [
-      "frontend/**/*",
-      "backend/**/*",
-      "main.js"
+    "extraResources": [
+      {
+        "from": "backend/FoodStats.exe",
+        "to": "backend/FoodStats.exe"
+      },
+      {
+        "from": "frontend",
+        "to": "frontend"
+      },
+      {
+        "from": "backend/database/nutrition_data.db",
+        "to": "backend/database/nutrition_data.db"
+      }
     ],
     "win": {
       "target": "nsis",
       "icon": "README RESOURCES/icon.png"
     },
-    "extraResources": [
-      {
-        "from": "backend/internal/database/nutrition_data.db",
-        "to": "backend/database/nutrition_data.db"
-      },
-      {
-        "from": "backend/FoodStats.exe",
-        "to": "backend/FoodStats.exe"
-      }
-    ]
+    "asar": true
   }
 }

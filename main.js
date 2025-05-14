@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const fs = require('fs');
 let mainWindow;
 let backendProcess;
 let serverReady = false;
@@ -17,7 +18,7 @@ function getBackendPath() {
 }
 
 function waitForServer(callback) {
-    const maxAttempts = 30; // 30 attempts = 15 seconds
+    const maxAttempts = 20;
     let attempts = 0;
 
     const checkServer = () => {
@@ -29,7 +30,7 @@ function waitForServer(callback) {
             .catch(() => {
                 attempts++;
                 if (attempts < maxAttempts) {
-                    setTimeout(checkServer, 500); // Check every 500ms
+                    setTimeout(checkServer, 400); // Check every 500ms
                 } else {
                     dialog.showErrorBox(
                         'Server Error',
@@ -40,37 +41,65 @@ function waitForServer(callback) {
             });
     };
 
-    setTimeout(checkServer, 1000); // Give the server a second to start
+    setTimeout(checkServer, 1000);
 }
 
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        show: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         },
-        show: false // Don't show window until server is ready
     });
 
     mainWindow.loadFile(path.join(__dirname, 'frontend/index.html'));
 
-    // Only show window when server is ready
     waitForServer(() => {
-        mainWindow.show();
+        if (mainWindow) {
+            mainWindow.show();
+        }
+    });
+
+    mainWindow.webContents.on('did-fail-load', () => {
+        dialog.showErrorBox(
+            'Loading Error',
+            'Failed to load the application interface.'
+        );
     });
 }
 
 function startBackend() {
     const backendPath = getBackendPath();
-    console.log('Starting backend from:', backendPath);
-
     const backendDir = path.dirname(backendPath);
 
+    console.log('Starting backend from:', backendPath);
+    console.log('Backend directory:', backendDir);
+    console.log('Working directory:', process.cwd());
+
+    // Copy database to working directory if in production
+    if (!isDev()) {
+        const dbSource = path.join(process.resourcesPath, 'database', 'nutrition_data.db');
+        const dbDest = path.join(backendDir, 'database', 'nutrition_data.db');
+
+        // Ensure directory exists
+        fs.mkdirSync(path.join(backendDir, 'database'), { recursive: true });
+
+        try {
+            fs.copyFileSync(dbSource, dbDest);
+            console.log('Database copied successfully');
+        } catch (err) {
+            console.error('Error copying database:', err);
+        }
+    }
+
     backendProcess = spawn(backendPath, [], {
-        cwd: backendDir
+        cwd: backendDir,
+        windowsHide: false
     });
+
 
     backendProcess.stdout.on('data', (data) => {
         console.log(`Backend output: ${data}`);
@@ -84,7 +113,7 @@ function startBackend() {
         console.error('Failed to start backend:', err);
         dialog.showErrorBox(
             'Server Error',
-            'Failed to start the backend server. Please check if the server executable exists.'
+            'Failed to start the backend server. Error: ' + err.message
         );
         app.quit();
     });
@@ -102,7 +131,7 @@ function startBackend() {
 
 app.whenReady().then(() => {
     startBackend();
-    createWindow();
+    setTimeout(createWindow, 1000);
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
