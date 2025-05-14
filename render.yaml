@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: foodstats-backend
+    runtime: go
+    buildCommand: cd backend && go build -o app
+    startCommand: ./backend/app
+    envVars:
+      - key: GO_ENV
+        value: production
+      - key: PORT
+        fromService: RENDER_PORT

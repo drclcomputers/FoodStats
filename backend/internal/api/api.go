@@ -22,8 +22,24 @@ var (
 	mu             sync.Mutex
 )
 
+func isDev() bool {
+	// Check for development environment variable
+	return os.Getenv("GO_ENV") != "production"
+}
+
 func enableCORS(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	allowedOrigins := []string{
+		"http://localhost:8080",
+		"http://localhost:3000",
+		"https://foodstats.onrender.com",
+	}
+
+	origin := "*"
+	if !isDev() {
+		origin = strings.Join(allowedOrigins, ", ")
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
@@ -31,6 +47,16 @@ func enableCORS(w http.ResponseWriter) {
 func InitServer() {
 	database.InitDB()
 	defer database.CloseDB()
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
+			return
+		}
+		http.NotFound(w, r)
+	})
+
 	http.HandleFunc("/api/add-ingredient", addIngredientHandler)
 	http.HandleFunc("/api/calculate", calculateHandler)
 	http.HandleFunc("/api/reset", resetHandler)
@@ -43,8 +69,12 @@ func InitServer() {
 		port = "8080"
 	}
 
-	log.Printf("Server started on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("Server starting on port: %s", port)
+	log.Printf("Running in %s mode", map[bool]string{true: "development", false: "production"}[isDev()])
+
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
