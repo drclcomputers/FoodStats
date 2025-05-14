@@ -1,13 +1,6 @@
 const nameInput = document.getElementById("name");
 const suggestionsList = document.getElementById("suggestions");
 
-const API_BASE = (() => {
-    if (window.process && process.versions['electron']) {
-        return 'http://localhost:8080/api';
-    }
-    return 'https://foodstats-backend.onrender.com/api';
-})();
-
 nameInput.addEventListener("input", function () {
     const query = nameInput.value.trim();
 
@@ -33,5 +26,12 @@ nameInput.addEventListener("input", function () {
         })
         .catch(err => {
             console.error("Error fetching suggestions:", err);
+            suggestionsList.innerHTML = "";
         });
+});
+
+document.addEventListener('click', function(e) {
+    if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+        suggestionsList.innerHTML = "";
+    }
 });
