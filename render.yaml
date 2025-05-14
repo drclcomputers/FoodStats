@@ -1,0 +1,5 @@
+services:
+  - type: web
+    name: foodstats
+    env: docker
+    plan: free
