@@ -28,18 +28,7 @@ func isDev() bool {
 }
 
 func enableCORS(w http.ResponseWriter) {
-	allowedOrigins := []string{
-		"http://localhost:8080",
-		"http://localhost:3000",
-		"https://foodstats.onrender.com",
-	}
-
-	origin := "*"
-	if !isDev() {
-		origin = strings.Join(allowedOrigins, ", ")
-	}
-
-	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
