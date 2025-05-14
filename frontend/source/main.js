@@ -1,4 +1,7 @@
 console.log("main.js loaded");
+const API_BASE = process.env.NODE_ENV === 'production'
+    ? 'https://foodstats.railway.app/api'
+    : 'http://localhost:8080/api';
 
 document.getElementById("ingredientForm").addEventListener("submit", function(e) {
     e.preventDefault();
@@ -16,7 +19,7 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
         return;
     }
 
-    fetch("http://localhost:8080/api/add-ingredient", {
+    fetch(`${API_BASE}/add-ingredient`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, grams })
@@ -39,7 +42,7 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
 
 
 function fetchIngredients() {
-    fetch("http://localhost:8080/api/ingredients")
+    fetch(`${API_BASE}/ingredients`)
         .then(res => res.json())
         .then(data => {
             const list = document.getElementById("ingredientList");
@@ -66,7 +69,7 @@ function fetchIngredients() {
 
 
 function deleteIngredient(name) {
-    fetch(`http://localhost:8080/api/delete-ingredient?name=${encodeURIComponent(name)}`, {
+    fetch(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
         method: 'DELETE'
     })
         .then(response => response.json())
@@ -82,7 +85,7 @@ function deleteIngredient(name) {
 
 
 function calculateTotal() {
-    fetch("http://localhost:8080/api/calculate")
+    fetch(`${API_BASE}/calculate`)
         .then(res => res.json())
         .then(data => {
             const output = `
@@ -103,7 +106,7 @@ ${data.name} (${data.grams}g):
 
 
 function resetIngredients() {
-    fetch("http://localhost:8080/api/reset", {
+    fetch(`${API_BASE}/reset`, {
         method: "DELETE"
     })
         .then(res => res.json())

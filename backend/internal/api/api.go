@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -37,8 +38,13 @@ func InitServer() {
 	http.HandleFunc("/api/delete-ingredient", deleteIngredientHandler)
 	http.HandleFunc("/api/suggestions", suggestionHandler)
 
-	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server started on :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
