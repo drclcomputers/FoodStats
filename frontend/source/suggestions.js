@@ -1,6 +1,13 @@
 const nameInput = document.getElementById("name");
 const suggestionsList = document.getElementById("suggestions");
 
+const API_BASE = (() => {
+    if (window.process && process.versions['electron']) {
+        return 'http://localhost:8080/api';
+    }
+    return 'https://foodstats-backend.onrender.com/api';
+})();
+
 nameInput.addEventListener("input", function () {
     const query = nameInput.value.trim();
 
@@ -9,7 +16,7 @@ nameInput.addEventListener("input", function () {
         return;
     }
 
-    fetch(`http://localhost:8080/api/suggestions?query=${encodeURIComponent(query)}`)
+    fetch(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
         .then(res => res.json())
         .then(data => {
             suggestionsList.innerHTML = "";
