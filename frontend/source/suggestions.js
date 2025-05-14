@@ -1,8 +1,5 @@
 const nameInput = document.getElementById("name");
 const suggestionsList = document.getElementById("suggestions");
-const API_BASE = process.env.NODE_ENV === 'production'
-    ? 'https://foodstats.railway.app/api'
-    : 'http://localhost:8080/api';
 
 nameInput.addEventListener("input", function () {
     const query = nameInput.value.trim();
@@ -12,7 +9,7 @@ nameInput.addEventListener("input", function () {
         return;
     }
 
-    fetch(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
+    fetch(`http://localhost:8080/api/suggestions?query=${encodeURIComponent(query)}`)
         .then(res => res.json())
         .then(data => {
             suggestionsList.innerHTML = "";

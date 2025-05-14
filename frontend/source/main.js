@@ -106,7 +106,7 @@ ${data.name} (${data.grams}g):
 
 
 function resetIngredients() {
-    fetch(`${API_BASE}/reset`, {
+    fetch("${API_BASE}/reset`, {
         method: "DELETE"
     })
         .then(res => res.json())
