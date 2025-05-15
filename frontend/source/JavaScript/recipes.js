@@ -1,0 +1,48 @@
+document.getElementById("saveRecipeForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const recipeName = document.getElementById("recipeName").value.trim();
+    const recipeDescription = document.getElementById("recipeDescription").value.trim();
+
+    if (!recipeName) {
+        alert("Please enter a recipe name.");
+        return;
+    }
+
+    // Fetch current ingredients from the backend
+    fetch(`${API_BASE}/ingredients`)
+        .then(res => res.json())
+        .then(ingredients => {
+            if (!ingredients.length) {
+                alert("No ingredients to save!");
+                return;
+            }
+
+            // Prepare ingredients for the API (only name and grams)
+            const recipeIngredients = ingredients.map(ing => ({
+                name: ing.name,
+                grams: ing.grams
+            }));
+
+            // Send to backend
+            fetch(`${API_BASE}/add-recipe`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: recipeName,
+                    description: recipeDescription,
+                    ingredients: recipeIngredients
+                })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to save recipe (maybe duplicate name?)");
+                    return res.json();
+                })
+                .then(() => {
+                    alert("Recipe saved!");
+                    document.getElementById("recipeName").value = "";
+                    document.getElementById("recipeDescription").value = "";
+                })
+                .catch(err => alert(err.message));
+        });
+});

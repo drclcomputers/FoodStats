@@ -19,11 +19,11 @@ import (
 
 var (
 	ingredientList []config.Ingredient
+	recipesList    []config.Recipe
 	mu             sync.Mutex
 )
 
 func isDev() bool {
-	// Check for development environment variable
 	return os.Getenv("GO_ENV") != "production"
 }
 
@@ -52,6 +52,10 @@ func InitServer() {
 	http.HandleFunc("/api/ingredients", listIngredientsHandler)
 	http.HandleFunc("/api/delete-ingredient", deleteIngredientHandler)
 	http.HandleFunc("/api/suggestions", suggestionHandler)
+	http.HandleFunc("/api/list-recipes", listRecipesHandler)
+	http.HandleFunc("/api/get-recipe", getRecipeHandler)
+	http.HandleFunc("/api/add-recipe", addRecipeHandler)
+	http.HandleFunc("/api/suggest-recipes", suggestRecipesHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -234,6 +238,128 @@ func suggestionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort.Strings(suggestions)
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(suggestions)
+}
+
+func listRecipesHandler(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	recipes, err := database.ListRecipes()
+	if err != nil {
+		http.Error(w, "Failed to fetch recipes", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(recipes)
+}
+
+func getRecipeHandler(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	name := r.URL.Query().Get("name")
+	if name == "" {
+		http.Error(w, "Missing recipe name", http.StatusBadRequest)
+		return
+	}
+
+	recipe, err := database.GetRecipe(name)
+	if err != nil {
+		http.Error(w, "Recipe not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(recipe)
+}
+
+func addRecipeHandler(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var input config.Recipe
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+	if input.Name == "" || len(input.Ingredients) == 0 {
+		http.Error(w, "Missing recipe name or ingredients", http.StatusBadRequest)
+		return
+	}
+
+	err := database.AddRecipe(input.Name, input.Description, input.Ingredients)
+	if err != nil {
+		http.Error(w, "Failed to add recipe: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Recipe added"})
+}
+
+func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	mu.Lock()
+	userIngredients := make(map[string]bool)
+	for _, ing := range ingredientList {
+		userIngredients[strings.ToLower(ing.Name)] = true
+	}
+	mu.Unlock()
+
+	recipes, err := database.ListRecipes()
+	if err != nil {
+		http.Error(w, "Failed to fetch recipes", http.StatusInternalServerError)
+		return
+	}
+
+	type suggestion struct {
+		config.Recipe
+		Matches int `json:"matches"`
+		Total   int `json:"total"`
+	}
+	var suggestions []suggestion
+
+	for _, recipe := range recipes {
+		matchCount := 0
+		for _, ing := range recipe.Ingredients {
+			if userIngredients[strings.ToLower(ing.Name)] {
+				matchCount++
+			}
+		}
+		if matchCount > 0 {
+			suggestions = append(suggestions, suggestion{
+				Recipe:  recipe,
+				Matches: matchCount,
+				Total:   len(recipe.Ingredients),
+			})
+		}
+	}
+
+	sort.Slice(suggestions, func(i, j int) bool {
+		return suggestions[i].Matches > suggestions[j].Matches
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(suggestions)

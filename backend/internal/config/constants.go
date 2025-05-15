@@ -22,3 +22,10 @@ type Ingredient struct {
 	TemplateIngredient
 	NutritionalInfo
 }
+
+type Recipe struct {
+	ID          int                  `json:"id"`
+	Name        string               `json:"name"`
+	Description string               `json:"description"`
+	Ingredients []TemplateIngredient `json:"ingredients"`
+}

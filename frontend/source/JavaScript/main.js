@@ -1,11 +1,3 @@
-console.log("main.js loaded");
-const API_BASE = (() => {
-    if (window.process && process.versions['electron']) {
-        return 'http://localhost:8080/api';
-    }
-    return 'https://foodstats-backend.onrender.com/api';
-})();
-
 document.getElementById("ingredientForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
@@ -42,8 +34,6 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
         .catch(err => alert(err.message));
 });
 
-
-
 function fetchIngredients() {
     fetch(`${API_BASE}/ingredients`)
         .then(res => res.json())
@@ -70,22 +60,25 @@ function fetchIngredients() {
         });
 }
 
-
 function deleteIngredient(name) {
     fetch(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
         method: 'DELETE'
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete ingredient');
+            }
+            return response.json();
+        })
         .then(data => {
             console.log(data);
             fetchIngredients();
         })
-        .catch(error => console.error('Delete error:', error));
-
-    const list = document.getElementById("ingredientList");
-    list.innerHTML = "";
+        .catch(error => {
+            console.error('Delete error:', error);
+            alert('Failed to delete ingredient');
+        });
 }
-
 
 function calculateTotal() {
     fetch(`${API_BASE}/calculate`)
@@ -107,22 +100,21 @@ ${data.name} (${data.grams}g):
         });
 }
 
-
 function resetIngredients() {
-    fetch(`${API_BASE}/reset`, {
-        method: "DELETE"
-    })
-        .then(res => res.json())
-        .then(data => {
-            console.log(data);
-            fetchIngredients();
-            document.getElementById("totalOutput").textContent = 'Click "Calculate" to see total nutrition.';
+    fetch(`${API_BASE}/reset`, { method: "DELETE" })
+        .then(() => {
+            fetchIngredients()
+            document.getElementById("recipeSearchInput").value = "";
+            document.getElementById("recipeSuggestionsSection").style.display = "none";
+            document.getElementById("recipeSuggestionsList").innerHTML = "";
+            document.getElementById("recipeSuggestions").innerHTML = "";
+            document.getElementById("totalOutput").innerHTML=`Click "Calculate" to see total nutrition.`;
+        })
+        .catch(error => {
+            console.error("Error resetting ingredients:", error);
+            alert("Failed to reset ingredients");
         });
-
-    const list = document.getElementById("ingredientList");
-    list.innerHTML = "";
 }
-
 
 fetchIngredients();
 

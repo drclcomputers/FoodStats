@@ -105,3 +105,108 @@ func GetAllIngredients() []config.Ingredient {
 	}
 	return list
 }
+
+func GetRecipe(name string) (config.Recipe, error) {
+	var recipe config.Recipe
+	err := DB.QueryRow("SELECT id, name, description FROM recipes WHERE name = ?", name).
+		Scan(&recipe.ID, &recipe.Name, &recipe.Description)
+	if err != nil {
+		return recipe, err
+	}
+
+	rows, err := DB.Query("SELECT ingredient_name, grams FROM recipe_ingredients WHERE recipe_id = ?", recipe.ID)
+	if err != nil {
+		return recipe, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var data config.TemplateIngredient
+		if err := rows.Scan(&data.Name, &data.Grams); err == nil {
+			recipe.Ingredients = append(recipe.Ingredients, data)
+		}
+	}
+	return recipe, nil
+}
+
+func AddRecipe(name, description string, ingredients []config.TemplateIngredient) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	res, err := tx.Exec("INSERT INTO recipes (name, description) VALUES (?, ?)", name, description)
+	if err != nil {
+		return err
+	}
+	recipeID, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare("INSERT INTO recipe_ingredients (recipe_id, ingredient_name, grams) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, ing := range ingredients {
+		_, err := stmt.Exec(recipeID, ing.Name, ing.Grams)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func ListRecipes() ([]config.Recipe, error) {
+	rows, err := DB.Query(`
+        SELECT r.id, r.name, r.description 
+        FROM recipes r 
+        ORDER BY r.name ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var recipes []config.Recipe
+	for rows.Next() {
+		var r config.Recipe
+		if err := rows.Scan(&r.ID, &r.Name, &r.Description); err != nil {
+			log.Printf("Error scanning recipe: %v", err)
+			continue
+		}
+
+		ingredients, err := getRecipeIngredients(r.ID)
+		if err != nil {
+			log.Printf("Error getting ingredients for recipe %s: %v", r.Name, err)
+			continue
+		}
+		r.Ingredients = ingredients
+		recipes = append(recipes, r)
+	}
+	return recipes, nil
+}
+
+func getRecipeIngredients(recipeID int) ([]config.TemplateIngredient, error) {
+	rows, err := DB.Query(`
+        SELECT ingredient_name, grams 
+        FROM recipe_ingredients 
+        WHERE recipe_id = ?`, recipeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ingredients []config.TemplateIngredient
+	for rows.Next() {
+		var ing config.TemplateIngredient
+		if err := rows.Scan(&ing.Name, &ing.Grams); err != nil {
+			return nil, err
+		}
+		ingredients = append(ingredients, ing)
+	}
+	return ingredients, nil
+}

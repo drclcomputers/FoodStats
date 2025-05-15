@@ -225,3 +225,185 @@ h2 {
 .footer button:hover {
     background: #f0f0f0;
 }
+
+#recipeSearchForm {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+#recipeSearchInput {
+    margin: 0;
+    vertical-align: middle;
+}
+
+#recipeSuggestions {
+    top: 100%;
+    left: 0;
+    width: 100%;
+    position: absolute;
+    z-index: 100;
+}
+
+#recipeSuggestionsSection {
+       max-width: 650px;
+       margin: 20px auto;
+       padding: 15px;
+       border-radius: 8px;
+       background: white;
+       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+   }
+
+#recipeSuggestionsList {
+    height: calc(5 * 56px);
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.recipe-suggestion {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.recipe-suggestion:last-child {
+    border-bottom: none;
+}
+
+.use-recipe-btn {
+    padding: 6px 12px;
+    font-size: 0.9em;
+}
+
+.suggestions-list abbr {
+    text-decoration: none;
+    border-bottom: 1px dotted #666;
+    cursor: help;
+}
+
+.suggestions-list li:hover abbr {
+    border-bottom-style: solid;
+}
+
+.hide-suggestions-btn {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.hide-suggestions-btn:hover {
+    background-color: #d0d0d0;
+}
+
+#recipeFilters {
+    margin: 20px auto;
+    max-width: 800px;
+    display: flex;
+    gap: 10px;
+}
+
+#recipeFilters input,
+#recipeFilters select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#recipeFilters input {
+    flex: 1;
+}
+
+#recipeList {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#recipeList article {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #eee;
+}
+
+#recipeList .description {
+    color: #666;
+    font-style: italic;
+    margin: 10px 0;
+}
+
+#recipeList .use-recipe-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.use-recipe-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    align-content: center;
+}
+
+.use-recipe-btn:hover {
+    background-color: #45a049;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+#recipeFilters input,
+#recipeFilters select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#recipeFilters input {
+    flex: 1;
+}
+
+#recipeList .description {
+    color: #666;
+    font-style: italic;
+    margin: 10px 0;
+}
+
+.use-recipe-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.use-recipe-btn:hover {
+    background-color: #45a049;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
