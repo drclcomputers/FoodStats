@@ -9,6 +9,8 @@ import (
 	"FoodStats/internal/config"
 	"FoodStats/internal/database"
 	"encoding/json"
+	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"os"
@@ -18,19 +20,45 @@ import (
 )
 
 var (
-	ingredientList []config.Ingredient
-	recipesList    []config.Recipe
-	mu             sync.Mutex
+	userIngredients = make(map[string][]config.Ingredient)
+	mu              sync.Mutex
 )
 
 func isDev() bool {
 	return os.Getenv("GO_ENV") != "production"
 }
 
-func enableCORS(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+func enableCORS(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	if isDev() || origin == "" || origin == "file://" || origin == "null" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+	} else {
+		w.Header().Set("Access-Control-Allow-Origin", "https://foodstats-frontend.onrender.com")
+		w.Header().Set("Vary", "Origin")
+	}
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+}
+
+func getSessionID(w http.ResponseWriter, r *http.Request) string {
+	// 1. Check for Electron
+	if sid := r.URL.Query().Get("session_id"); sid != "" {
+		return sid
+	}
+	// 2. Check for web
+	cookie, err := r.Cookie("session_id")
+	if err == nil && cookie.Value != "" {
+		return cookie.Value
+	}
+	// 3. Create new session
+	sessionID := uuid.New().String()
+	http.SetCookie(w, &http.Cookie{
+		Name:  "session_id",
+		Value: sessionID,
+		Path:  "/",
+	})
+	return sessionID
 }
 
 func InitServer() {
@@ -71,16 +99,17 @@ func InitServer() {
 }
 
 func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
+	sessionID := getSessionID(w, r)
 
 	var input config.TemplateIngredient
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -88,9 +117,7 @@ func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
-
 	input.Name = strings.TrimSpace(input.Name)
-
 	if input.Grams <= 0 || input.Name == "" {
 		http.Error(w, "Invalid input values", http.StatusBadRequest)
 		return
@@ -102,52 +129,59 @@ func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, ing := range ingredientList {
+	mu.Lock()
+	defer mu.Unlock()
+	for _, ing := range userIngredients[sessionID] {
 		if ing.Name == ingredient.Name {
 			http.Error(w, "Ingredient already added", http.StatusConflict)
 			return
 		}
 	}
-
-	mu.Lock()
-	ingredientList = append(ingredientList, ingredient)
-	mu.Unlock()
+	userIngredients[sessionID] = append(userIngredients[sessionID], ingredient)
 
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(ingredient)
+
+	fmt.Printf("SessionID: %s, Ingredients: %+v\n", sessionID, userIngredients[sessionID])
 }
 
 func listIngredientsHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
+	sessionID := getSessionID(w, r)
+
 	mu.Lock()
 	defer mu.Unlock()
 
-	sort.Slice(ingredientList, func(i, j int) bool {
-		return ingredientList[i].Name < ingredientList[j].Name
+	list := userIngredients[sessionID]
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Name < list[j].Name
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(ingredientList)
+	_ = json.NewEncoder(w).Encode(list)
+
 }
 
 func calculateHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+
+	sessionID := getSessionID(w, r)
 
 	mu.Lock()
 	defer mu.Unlock()
 
 	var total config.Ingredient
 	total.Name = "Your recipe"
-	for _, ing := range ingredientList {
+	for _, ing := range userIngredients[sessionID] {
 		total.Grams += ing.Grams
 		total.Calories += ing.Calories
 		total.Proteins += ing.Proteins
@@ -161,7 +195,7 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -179,23 +213,25 @@ func deleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sessionID := getSessionID(w, r)
+
 	mu.Lock()
 	defer mu.Unlock()
 
 	newList := make([]config.Ingredient, 0)
-	for _, ing := range ingredientList {
+	for _, ing := range userIngredients[sessionID] {
 		if ing.Name != name {
 			newList = append(newList, ing)
 		}
 	}
-	ingredientList = newList
+	userIngredients[sessionID] = newList
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{"message":"Ingredient deleted."}`))
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -206,8 +242,10 @@ func resetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sessionID := getSessionID(w, r)
+
 	mu.Lock()
-	ingredientList = nil
+	userIngredients[sessionID] = nil
 	mu.Unlock()
 
 	w.WriteHeader(http.StatusOK)
@@ -215,7 +253,7 @@ func resetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func suggestionHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -244,7 +282,7 @@ func suggestionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func listRecipesHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -261,7 +299,7 @@ func listRecipesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecipeHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -284,7 +322,7 @@ func getRecipeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addRecipeHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -315,16 +353,18 @@ func addRecipeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
+	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
+	sessionID := getSessionID(w, r)
+
 	mu.Lock()
-	userIngredients := make(map[string]bool)
-	for _, ing := range ingredientList {
-		userIngredients[strings.ToLower(ing.Name)] = true
+	userIngs := make(map[string]bool)
+	for _, ing := range userIngredients[sessionID] {
+		userIngs[strings.ToLower(ing.Name)] = true
 	}
 	mu.Unlock()
 
@@ -344,7 +384,7 @@ func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
 	for _, recipe := range recipes {
 		matchCount := 0
 		for _, ing := range recipe.Ingredients {
-			if userIngredients[strings.ToLower(ing.Name)] {
+			if userIngs[strings.ToLower(ing.Name)] {
 				matchCount++
 			}
 		}
@@ -356,11 +396,9 @@ func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-
 	sort.Slice(suggestions, func(i, j int) bool {
 		return suggestions[i].Matches > suggestions[j].Matches
 	})
-
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(suggestions)
 }

@@ -16,7 +16,7 @@ if (nameInput && suggestionsList) {
             return;
         }
 
-        fetch(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
+        fetchWithSession(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => {
                 suggestionsList.innerHTML = "";
@@ -57,7 +57,7 @@ recipeSearchInput.addEventListener("input", function () {
 
     // Fetch recipe list only once and cache it
     if (recipeListCache.length === 0) {
-        fetch(`${API_BASE}/list-recipes`)
+        fetchWithSession(`${API_BASE}/list-recipes`)
             .then(res => res.json())
             .then(recipes => {
                 recipeListCache = recipes;
@@ -96,12 +96,12 @@ function showRecipeSuggestions(query) {
             recipeSuggestions.innerHTML = "";
 
             try {
-                await fetch(`${API_BASE}/reset`, { method: "DELETE" });
-                const response = await fetch(`${API_BASE}/get-recipe?name=${encodeURIComponent(recipe.name)}`);
+                await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"});
+                const response = await fetchWithSession(`${API_BASE}/get-recipe?name=${encodeURIComponent(recipe.name)}`);
                 const recipeDetails = await response.json();
 
                 for (const ingredient of recipeDetails.ingredients) {
-                    await fetch(`${API_BASE}/add-ingredient`, {
+                    await fetchWithSession(`${API_BASE}/add-ingredient`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -135,7 +135,7 @@ document.getElementById("suggestRecipesBtn").addEventListener("click", function(
     const suggestionsSection = document.getElementById("recipeSuggestionsSection");
     suggestionsSection.style.display = "block";
 
-    fetch(`${API_BASE}/suggest-recipes`)
+    fetchWithSession(`${API_BASE}/suggest-recipes`)
         .then(res => res.json())
         .then(suggestions => {
             const list = document.getElementById("recipeSuggestionsList");
@@ -175,12 +175,12 @@ document.getElementById("suggestRecipesBtn").addEventListener("click", function(
 
                 li.querySelector('.use-recipe-btn').addEventListener('click', async () => {
                     try {
-                        await fetch(`${API_BASE}/reset`, { method: "DELETE" });
-                        const response = await fetch(`${API_BASE}/get-recipe?name=${encodeURIComponent(s.name)}`);
+                        await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
+                        const response = await fetchWithSession(`${API_BASE}/get-recipe?name=${encodeURIComponent(s.name)}`);
                         const recipeDetails = await response.json();
 
                         for (const ingredient of recipeDetails.ingredients) {
-                            await fetch(`${API_BASE}/add-ingredient`, {
+                            await fetchWithSession(`${API_BASE}/add-ingredient`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({

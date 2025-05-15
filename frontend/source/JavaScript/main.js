@@ -19,7 +19,7 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
         return;
     }
 
-    fetch(`${API_BASE}/add-ingredient`, {
+    fetchWithSession(`${API_BASE}/add-ingredient`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, grams })
@@ -40,7 +40,7 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
 });
 
 function fetchIngredients() {
-    fetch(`${API_BASE}/ingredients`)
+    fetchWithSession(`${API_BASE}/ingredients`)
         .then(res => res.json())
         .then(data => {
             const list = document.getElementById("ingredientList");
@@ -66,7 +66,7 @@ function fetchIngredients() {
 }
 
 function deleteIngredient(name) {
-    fetch(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
+    fetchWithSession(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
         method: 'DELETE'
     })
         .then(response => {
@@ -86,7 +86,7 @@ function deleteIngredient(name) {
 }
 
 function calculateTotal() {
-    fetch(`${API_BASE}/calculate`)
+    fetchWithSession(`${API_BASE}/calculate`)
         .then(res => res.json())
         .then(data => {
             const output = `
@@ -106,7 +106,7 @@ ${data.name} (${data.grams}g):
 }
 
 function resetIngredients() {
-    fetch(`${API_BASE}/reset`, { method: "DELETE" })
+    fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"})
         .then(() => {
             fetchIngredients()
             document.getElementById("recipeSearchInput").value = "";

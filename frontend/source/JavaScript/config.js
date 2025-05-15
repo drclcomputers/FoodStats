@@ -10,3 +10,14 @@ const API_BASE = (() => {
     return 'https://foodstats-backend.onrender.com/api';
 })();
 
+if (!localStorage.getItem('session_id')) {
+    localStorage.setItem('session_id', crypto.randomUUID());
+}
+const SESSION_ID = localStorage.getItem('session_id');
+
+function fetchWithSession(url, options = {}) {
+    const urlObj = new URL(url, window.location.origin);
+    urlObj.searchParams.set('session_id', SESSION_ID);
+    return fetch(urlObj.toString(), options);
+}
+

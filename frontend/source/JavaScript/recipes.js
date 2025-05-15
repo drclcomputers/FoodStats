@@ -14,8 +14,8 @@ document.getElementById("saveRecipeForm").addEventListener("submit", function(e)
         return;
     }
 
-    // Fetch current ingredients from the backend
-    fetch(`${API_BASE}/ingredients`)
+    // fetch current ingredients from the backend
+    fetchWithSession(`${API_BASE}/ingredients`)
         .then(res => res.json())
         .then(ingredients => {
             if (!ingredients.length) {
@@ -30,7 +30,7 @@ document.getElementById("saveRecipeForm").addEventListener("submit", function(e)
             }));
 
             // Send to backend
-            fetch(`${API_BASE}/add-recipe`, {
+            fetchWithSession(`${API_BASE}/add-recipe`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

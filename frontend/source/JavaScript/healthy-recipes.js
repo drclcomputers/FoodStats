@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allRecipes = [];
 
     function fetchRecipes() {
-        fetch(`${API_BASE}/list-recipes`)
+        fetchWithSession(`${API_BASE}/list-recipes`)
             .then(res => res.json())
             .then(recipes => {
                 allRecipes = recipes;
@@ -67,12 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.textContent = 'Loading...';
 
                 try {
-                    await fetch(`${API_BASE}/reset`, { method: "DELETE" });
-                    const response = await fetch(`${API_BASE}/get-recipe?name=${encodeURIComponent(recipeName)}`);
+                    await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"});
+                    const response = await fetchWithSession(`${API_BASE}/get-recipe?name=${encodeURIComponent(recipeName)}`);
                     const recipeDetails = await response.json();
 
                     for (const ingredient of recipeDetails.ingredients) {
-                        await fetch(`${API_BASE}/add-ingredient`, {
+                        await fetchWithSession(`${API_BASE}/add-ingredient`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
