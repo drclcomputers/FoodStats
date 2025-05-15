@@ -99,7 +99,6 @@ A modern desktop application for tracking nutritional information and discoverin
 - `DELETE /api/reset` - Reset ingredient list
 - `GET /api/list-recipes` - List all recipes
 - `GET /api/get-recipe?name=...` - Get a recipe by name
-- `POST /api/save-recipe` - Save a new recipe
 - `GET /api/suggest-recipes` - Suggest recipes based on current ingredients
 
 ---
