@@ -7,30 +7,30 @@ A modern desktop application for tracking nutritional information and discoverin
 ## 📋 Features
 
 - **Real-time Nutrition Tracking**
-  - Add ingredients with quantities
-  - Smart auto-complete ingredient suggestions
-  - Calculate total nutritional values
-  - Track calories, proteins, carbs, fats, and fiber
+    - Add ingredients with quantities
+    - Smart auto-complete ingredient suggestions
+    - Calculate total nutritional values
+    - Track calories, proteins, carbs, fats, and fiber
 
 - **Recipe Management**
-  - Save and search for recipes
-  - Suggest recipes based on your current ingredients
-  - One-click ingredient list population from recipes
+    - Save and search for recipes
+    - Suggest recipes based on your current ingredients
+    - One-click ingredient list population from recipes
 
 - **Healthy Living Recommendations**
-  - 50+ healthy lifestyle tips and advice
-  - Curated healthy recipes
+    - 50+ healthy lifestyle tips and advice
+    - Curated healthy recipes
 
 - **Desktop Integration**
-  - Native desktop application (Windows)
-  - Automatic backend server management
-  - System tray integration
-  - Dark/Light mode with persistence
+    - Native desktop application (Windows)
+    - Automatic backend server management
+    - System tray integration
+    - Dark/Light mode with persistence
 
 - **Responsive Design**
-  - Mobile-friendly interface
-  - Desktop-optimized layout
-  - Cross-platform support
+    - Mobile-friendly interface
+    - Desktop-optimized layout
+    - Cross-platform support
 
 ---
 
@@ -84,8 +84,8 @@ A modern desktop application for tracking nutritional information and discoverin
     ```
 
 2. **Install the application**
-  - Navigate to the `dist` folder
-  - Run the installer (`.exe` for Windows)
+- Navigate to the `dist` folder
+- Run the installer (`.exe` for Windows)
 
 ---
 
@@ -105,8 +105,9 @@ A modern desktop application for tracking nutritional information and discoverin
 
 ## 📱 Screenshots
 
-![FoodStats Main Interface](/README%20RESOURCES/img.png)
-![FoodStats Dark Mode](/README%20RESOURCES/img_1.png)
+![FoodStats Main Interface](/README%20RESOURCES/img_1.png)
+![FoodStats Healthy Recipes](/README%20RESOURCES/img.png)
+![FoodStats Recommendations](/README%20RESOURCES/img_2.png)
 
 ---
 
