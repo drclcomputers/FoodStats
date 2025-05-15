@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Recommendations - Healthy Living</title>
-    <link href="source/mystyle.css" rel="stylesheet">
-    <link href="source/mobile.css" rel="stylesheet">
-    <link href="source/darkmodestyle.css" rel="stylesheet">
+    <link href="source/CSS%20Styles/mystyle.css" rel="stylesheet">
+    <link href="source/CSS%20Styles/mobile.css" rel="stylesheet">
+    <link href="source/CSS%20Styles/darkmodestyle.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="source/favicon.ico">
 </head>
 <body style="text-align: left">
@@ -14,6 +14,12 @@
         <li><a href="index.html" class="nav-item">Home</a></li>
         <li><a href="recommendations.html" class="nav-item active">Recommendations</a></li>
         <li><a href="healthy-recipes.html" class="nav-item">Healthy Recipes</a></li>
+        <li>
+            <form id="recipeSearchForm" onsubmit="return false;">
+                <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                <ul id="recipeSuggestions" class="suggestions-list" style="position:absolute; left:0; top:100%; width:100%;"></ul>
+            </form>
+        </li>
     </ul>
 </nav>
 
@@ -21,42 +27,67 @@
 <p style="font-size: 1.25rem; text-align: center">Below you'll find some of our top recommendations for a healthy lifestyle, including fitness routines, diet tips, and
     more!</p>
 
-<article>
-    <h2>1. Start Your Day with a Healthy Breakfast</h2>
-    <p>A nutritious breakfast is essential to kick-start your day with energy. Consider options like smoothies, oatmeal,
-        or scrambled eggs with vegetables.</p>
-</article>
-
-<article>
-    <h2>2. Drink More Water</h2>
-    <p>Hydration is key to maintaining a healthy body. Aim to drink at least 8 glasses of water a day to keep your body
-        hydrated and functioning properly.</p>
-</article>
-
-<article>
-    <h2>3. Get Active: Exercise Regularly</h2>
-    <p>Regular exercise is essential for both physical and mental health. Aim for at least 30 minutes of
-        moderate-intensity exercise, such as walking, cycling, or yoga, every day.</p>
-</article>
-
-<article>
-    <h2>4. Practice Mindful Eating</h2>
-    <p>Mindful eating involves paying full attention to what you're eating and savoring each bite. This can help you
-        maintain a balanced diet and improve your relationship with food.</p>
-</article>
-
-<article>
-    <h2>5. Prioritize Sleep</h2>
-    <p>A good night's sleep is vital for physical and mental health. Try to aim for 7-9 hours of quality sleep each
-        night to allow your body and mind to recover.</p>
-</article>
+<div class="recommendations-list">
+    <article><h2>1. Start Your Day with a Healthy Breakfast</h2><p>A nutritious breakfast is essential to kick-start your day with energy. Consider options like smoothies, oatmeal, or scrambled eggs with vegetables.</p></article>
+    <article><h2>2. Drink More Water</h2><p>Hydration is key to maintaining a healthy body. Aim to drink at least 8 glasses of water a day to keep your body hydrated and functioning properly.</p></article>
+    <article><h2>3. Get Active: Exercise Regularly</h2><p>Regular exercise is essential for both physical and mental health. Aim for at least 30 minutes of moderate-intensity exercise, such as walking, cycling, or yoga, every day.</p></article>
+    <article><h2>4. Practice Mindful Eating</h2><p>Mindful eating involves paying full attention to what you're eating and savoring each bite. This can help you maintain a balanced diet and improve your relationship with food.</p></article>
+    <article><h2>5. Prioritize Sleep</h2><p>A good night's sleep is vital for physical and mental health. Try to aim for 7-9 hours of quality sleep each night to allow your body and mind to recover.</p></article>
+    <article><h2>6. Eat More Fruits and Vegetables</h2><p>Incorporate a variety of colorful fruits and vegetables into your meals for essential vitamins, minerals, and fiber.</p></article>
+    <article><h2>7. Limit Processed Foods</h2><p>Reduce your intake of processed and packaged foods, which often contain excess sugar, salt, and unhealthy fats.</p></article>
+    <article><h2>8. Manage Stress</h2><p>Practice stress-reducing techniques such as meditation, deep breathing, or spending time in nature.</p></article>
+    <article><h2>9. Maintain a Healthy Weight</h2><p>Achieve and maintain a healthy weight through balanced eating and regular physical activity.</p></article>
+    <article><h2>10. Avoid Sugary Drinks</h2><p>Opt for water, herbal teas, or sparkling water instead of sugary sodas and energy drinks.</p></article>
+    <article><h2>11. Cook at Home More Often</h2><p>Preparing meals at home allows you to control ingredients and portion sizes, leading to healthier eating habits.</p></article>
+    <article><h2>12. Practice Portion Control</h2><p>Be mindful of portion sizes to avoid overeating, even when eating healthy foods.</p></article>
+    <article><h2>13. Include Lean Proteins</h2><p>Choose lean protein sources such as chicken, fish, beans, and legumes to support muscle health.</p></article>
+    <article><h2>14. Limit Red and Processed Meats</h2><p>Reduce consumption of red and processed meats to lower your risk of chronic diseases.</p></article>
+    <article><h2>15. Choose Whole Grains</h2><p>Opt for whole grains like brown rice, quinoa, and whole wheat bread instead of refined grains.</p></article>
+    <article><h2>16. Snack Smart</h2><p>Choose healthy snacks such as nuts, seeds, yogurt, or fruit instead of chips or candy.</p></article>
+    <article><h2>17. Get Regular Health Checkups</h2><p>Visit your healthcare provider for regular checkups and screenings to catch potential issues early.</p></article>
+    <article><h2>18. Practice Good Hygiene</h2><p>Wash your hands regularly and maintain good personal hygiene to prevent illness.</p></article>
+    <article><h2>19. Limit Alcohol Consumption</h2><p>If you drink alcohol, do so in moderation—no more than one drink per day for women and two for men.</p></article>
+    <article><h2>20. Don’t Smoke</h2><p>Avoid tobacco products to reduce your risk of cancer, heart disease, and respiratory problems.</p></article>
+    <article><h2>21. Stay Socially Connected</h2><p>Maintain relationships with friends and family to support emotional well-being.</p></article>
+    <article><h2>22. Take Breaks from Screens</h2><p>Limit screen time and take regular breaks to reduce eye strain and improve posture.</p></article>
+    <article><h2>23. Practice Safe Sun Exposure</h2><p>Wear sunscreen and protective clothing to prevent skin damage from UV rays.</p></article>
+    <article><h2>24. Keep Your Mind Active</h2><p>Engage in activities that challenge your brain, such as puzzles, reading, or learning new skills.</p></article>
+    <article><h2>25. Volunteer or Help Others</h2><p>Helping others can boost your mood and provide a sense of purpose.</p></article>
+    <article><h2>26. Practice Gratitude</h2><p>Take time each day to reflect on things you’re grateful for to improve your outlook on life.</p></article>
+    <article><h2>27. Limit Salt Intake</h2><p>Use herbs and spices to flavor food instead of excess salt to support heart health.</p></article>
+    <article><h2>28. Eat Slowly</h2><p>Eating slowly can help you recognize when you’re full and prevent overeating.</p></article>
+    <article><h2>29. Plan Your Meals</h2><p>Meal planning helps you make healthier choices and saves time and money.</p></article>
+    <article><h2>30. Stay Consistent</h2><p>Consistency in healthy habits is key to long-term success.</p></article>
+    <article><h2>31. Practice Deep Breathing</h2><p>Deep breathing exercises can help reduce stress and improve focus.</p></article>
+    <article><h2>32. Get Outside</h2><p>Spending time outdoors can boost your mood and provide vitamin D.</p></article>
+    <article><h2>33. Keep a Food Diary</h2><p>Tracking what you eat can help you identify patterns and make healthier choices.</p></article>
+    <article><h2>34. Try New Activities</h2><p>Experiment with new sports, hobbies, or recipes to keep life interesting and active.</p></article>
+    <article><h2>35. Limit Added Sugars</h2><p>Check labels and reduce foods and drinks with added sugars.</p></article>
+    <article><h2>36. Practice Good Posture</h2><p>Maintain good posture to prevent back and neck pain.</p></article>
+    <article><h2>37. Meditate Regularly</h2><p>Meditation can help reduce anxiety and improve mental clarity.</p></article>
+    <article><h2>38. Listen to Your Body</h2><p>Rest when you’re tired and seek medical advice when something feels wrong.</p></article>
+    <article><h2>39. Keep Your Living Space Clean</h2><p>A tidy environment can reduce stress and improve productivity.</p></article>
+    <article><h2>40. Set Realistic Goals</h2><p>Set achievable health goals and celebrate your progress.</p></article>
+    <article><h2>41. Laugh Often</h2><p>Laughter is good for your mental and physical health.</p></article>
+    <article><h2>42. Stay Curious</h2><p>Keep learning and exploring new things to stay mentally sharp.</p></article>
+    <article><h2>43. Practice Self-Care</h2><p>Take time for yourself to relax and recharge.</p></article>
+    <article><h2>44. Avoid Late-Night Eating</h2><p>Try to finish eating at least 2-3 hours before bedtime.</p></article>
+    <article><h2>45. Use Smaller Plates</h2><p>This can help with portion control and prevent overeating.</p></article>
+    <article><h2>46. Chew Your Food Well</h2><p>Chewing thoroughly aids digestion and helps you feel full.</p></article>
+    <article><h2>47. Limit Caffeine Intake</h2><p>Too much caffeine can affect sleep and increase anxiety.</p></article>
+    <article><h2>48. Stay Positive</h2><p>Maintain a positive attitude to help cope with life’s challenges.</p></article>
+    <article><h2>49. Celebrate Small Wins</h2><p>Recognize and reward yourself for making healthy choices.</p></article>
+    <article><h2>50. Be Patient with Yourself</h2><p>Healthy living is a journey. Allow yourself time to adapt and grow.</p></article>
+</div>
 
 <footer class="footer">
     <pre>&copy;2025 @drclcomputers |  </pre>
     <button id="toggleDarkMode">🌙 Toggle Dark Mode</button>
 </footer>
 
-<script src="./source/main.js"></script>
-<script src="source/darkmodescript.js"></script>
+<script src="source/JavaScript/config.js"></script>
+<script src="source/JavaScript/main.js"></script>
+<script src="source/JavaScript/darkmodescript.js"></script>
+<script src="source/JavaScript/suggestions.js"></script>
 </body>
 </html>

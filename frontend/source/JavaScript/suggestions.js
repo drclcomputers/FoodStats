@@ -2,46 +2,47 @@
 const nameInput = document.getElementById("name");
 const suggestionsList = document.getElementById("suggestions");
 
-nameInput.addEventListener("input", function () {
-    const query = nameInput.value.trim();
+if (nameInput && suggestionsList) {
+    nameInput.addEventListener("input", function () {
+        const query = nameInput.value.trim();
 
-    if (query.length < 1) {
-        suggestionsList.innerHTML = "";
-        return;
-    }
-
-    fetch(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
-        .then(res => res.json())
-        .then(data => {
+        if (query.length < 1) {
             suggestionsList.innerHTML = "";
+            return;
+        }
 
-            data.forEach(suggestion => {
-                const li = document.createElement("li");
-                li.textContent = suggestion;
-                li.addEventListener("click", () => {
-                    nameInput.value = suggestion;
-                    suggestionsList.innerHTML = "";
+        fetch(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                suggestionsList.innerHTML = "";
+
+                data.forEach(suggestion => {
+                    const li = document.createElement("li");
+                    li.textContent = suggestion;
+                    li.addEventListener("click", () => {
+                        nameInput.value = suggestion;
+                        suggestionsList.innerHTML = "";
+                    });
+                    suggestionsList.appendChild(li);
                 });
-                suggestionsList.appendChild(li);
+            })
+            .catch(err => {
+                console.error("Error fetching suggestions:", err);
+                suggestionsList.innerHTML = "";
             });
-        })
-        .catch(err => {
-            console.error("Error fetching suggestions:", err);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
             suggestionsList.innerHTML = "";
-        });
-});
-
-document.addEventListener('click', function(e) {
-    if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
-        suggestionsList.innerHTML = "";
-    }
-});
-
+        }
+    });
+}
+// Fetch and filter recipes as user types
 const recipeSearchInput = document.getElementById("recipeSearchInput");
 const recipeSuggestions = document.getElementById("recipeSuggestions");
 let recipeListCache = [];
 
-// Fetch and filter recipes as user types
 recipeSearchInput.addEventListener("input", function () {
     const query = recipeSearchInput.value.trim().toLowerCase();
     if (query.length < 3) {
@@ -107,6 +108,8 @@ function showRecipeSuggestions(query) {
 
                 fetchIngredients();
                 calculateTotal();
+
+                window.location.href = "index.html";
 
             } catch (error) {
                 alert("Error loading recipe: " + error.message);

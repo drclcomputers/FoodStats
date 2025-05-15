@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>FoodStats</title>
-    <link href="source/mystyle.css" rel="stylesheet">
-    <link href="source/mobile.css" rel="stylesheet">
-    <link href="source/darkmodestyle.css" rel="stylesheet">
+    <link href="source/CSS%20Styles/mystyle.css" rel="stylesheet">
+    <link href="source/CSS%20Styles/mobile.css" rel="stylesheet">
+    <link href="source/CSS%20Styles/darkmodestyle.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="source/favicon.ico">
 </head>
 <body>
@@ -14,13 +14,18 @@
         <li><a href="index.html" class="nav-item active">Home</a></li>
         <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
         <li><a href="healthy-recipes.html" class="nav-item">Healthy Recipes</a></li>
+        <li><form id="recipeSearchForm">
+            <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+            <ul id="recipeSuggestions" class="suggestions-list" style="position:absolute; left:0; top:100%; width:100%;"></ul>
+        </form></li>
     </ul>
 </nav>
+
 <h1>FoodStats</h1>
 
 <form id="ingredientForm">
-    <input type="text" id="name" name="name" placeholder="Ingredient...">
-    <input type="number" id="grams" placeholder="Grams" required/>
+    <input type="text" id="name" name="name" autocomplete="off" placeholder="Ingredient...">
+    <input type="number" id="grams" autocomplete="off" placeholder="Grams" required/>
     <button type="submit">Add Ingredient</button>
     <ul id="suggestions" class="suggestions-list"></ul>
 </form>
@@ -31,18 +36,37 @@
 <div class="actions">
     <button onclick="resetIngredients()">Reset</button>
     <button onclick="calculateTotal()">Calculate</button>
+    <button id="suggestRecipesBtn" type="button">Suggest Recipes</button>
+</div>
+
+<div id="recipeSuggestionsSection" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0;">Recipe Suggestions</h2>
+        <button class="hide-suggestions-btn" onclick="hideRecipeSuggestions()">✕ Hide</button>
+    </div>
+    <ul id="recipeSuggestionsList" class="suggestions-list" style="position: static; width: 100%; max-height: none;"></ul>
 </div>
 
 <h2>Total Nutrition</h2>
-<pre id="totalOutput">Click "Calculate" to see total nutrition.</pre>
+<p id="totalOutput">Click "Calculate" to see total nutrition.</p>
+
+<!--
+<h2>Save as Recipe</h2>
+<form id="saveRecipeForm" style="margin-bottom: 20px;">
+    <input type="text" id="recipeName" placeholder="Recipe name" required>
+    <input type="text" id="recipeDescription" placeholder="Description (optional)">
+    <button type="submit">Save Recipe</button>
+</form>-->
 
 <footer class="footer">
     <pre>&copy;2025 @drclcomputers |  </pre>
     <button id="toggleDarkMode">🌙 Toggle Dark Mode</button>
 </footer>
 
-<script src="source/main.js"></script>
-<script src="source/suggestions.js"></script>
-<script src="source/darkmodescript.js"></script>
+<script src="source/JavaScript/config.js"></script>
+<script src="source/JavaScript/main.js"></script>
+<script src="source/JavaScript/suggestions.js"></script>
+<script src="source/JavaScript/recipes.js"></script>
+<script src="source/JavaScript/darkmodescript.js"></script>
 </body>
 </html>
