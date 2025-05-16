@@ -165,3 +165,26 @@ body.dark-mode #recipeFilters select {
     color: #fff;
 }
 
+body.dark-mode .suggestions-list::-webkit-scrollbar {
+    background: #afafaf;
+}
+body.dark-mode .suggestions-list::-webkit-scrollbar-thumb {
+    background: #757575;
+}
+
+body.dark-mode, html.dark-mode {
+    scrollbar-color: #757575 #1e1e1e;
+}
+
+body.dark-mode::-webkit-scrollbar, html.dark-mode::-webkit-scrollbar {
+    background: #1e1e1e;
+}
+body.dark-mode::-webkit-scrollbar-thumb, html.dark-mode::-webkit-scrollbar-thumb {
+    background: #757575;
+}
+
+body.dark-mode .toast {
+    background: #424242;
+    color: #fff;
+}
+

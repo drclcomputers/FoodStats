@@ -21,3 +21,19 @@ function fetchWithSession(url, options = {}) {
     return fetch(urlObj.toString(), options);
 }
 
+function showToast(message) {
+    const existingToasts = document.querySelectorAll('.toast');
+    existingToasts.forEach(toast => toast.remove());
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast && document.body.contains(toast)) {
+            toast.remove();
+        }
+    }, 3000);
+}
+

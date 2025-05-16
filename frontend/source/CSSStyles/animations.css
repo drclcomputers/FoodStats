@@ -1,0 +1,206 @@
+@keyframes ingredientAdded {
+    0%   { background: #d4f8e8; }
+    100% { background: white; }
+}
+
+#ingredientList li.added {
+    animation: ingredientAdded 1s ease;
+}
+
+#ingredientForm button[type="submit"]:hover {
+    transform: scale(1.07);
+    box-shadow: 0 2px 12px rgba(82,171,152,0.15);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+#ingredientList li.removing {
+    animation: fadeOut 0.3s ease forwards;
+    pointer-events: none;
+}
+
+#ingredientList li {
+    animation: slideIn 0.3s ease;
+}
+
+.recipe-actions button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #52ab98;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loading-text {
+    font-size: 1.1em;
+}
+
+@keyframes resetList {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.reset-animation {
+    animation: resetList 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.suggestions-list {
+    animation: fadeIn 0.2s ease;
+}
+
+.suggestions-list.hiding {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+#recipeSearchInput, #name {
+    transition: all 0.3s ease;
+}
+
+#recipeSearchInput:focus, #name:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(82,171,152,0.15);
+}
+
+@keyframes suggestionsShowUp {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+    }
+    70% {
+        opacity: 0.5;
+        transform: translateY(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+    }
+}
+
+@keyframes suggestionsHideOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+    }
+    30% {
+        opacity: 0.5;
+        transform: translateY(5px);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+    }
+}
+
+#suggestions, #recipeSuggestions, #recipeSuggestionsSection {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.4s ease;
+}
+
+#suggestions.showing,
+#recipeSuggestions.showing,
+#recipeSuggestionsSection.showing {
+    display: block;
+    animation: suggestionsShowUp 0.8s ease forwards;
+}
+
+#suggestions.hiding,
+#recipeSuggestions.hiding,
+#recipeSuggestionsSection.hiding {
+    animation: suggestionsHideOut 0.8s ease forwards;
+}
+
+@keyframes toastIn {
+    0% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

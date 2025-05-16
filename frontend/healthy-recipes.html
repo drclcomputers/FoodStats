@@ -10,9 +10,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Healthy Recipes - FoodStats</title>
-    <link href="source/CSS%20Styles/mystyle.css" rel="stylesheet">
-    <link href="source/CSS%20Styles/mobile.css" rel="stylesheet">
-    <link href="source/CSS%20Styles/darkmodestyle.css" rel="stylesheet">
+    <link href="source/CSSStyles/mystyle.css" rel="stylesheet">
+    <link href="source/CSSStyles/components.css" rel="stylesheet">
+    <link href="source/CSSStyles/scrollbar.css" rel="stylesheet">
+    <link href="source/CSSStyles/mobile.css" rel="stylesheet">
+    <link href="source/CSSStyles/darkmodestyle.css" rel="stylesheet">
+    <link href="source/CSSStyles/animations.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="source/favicon.ico">
 </head>
 <body style="text-align: left">
@@ -34,8 +37,13 @@
 <p style="font-size: 1.25rem; text-align: center">Discover nutritious and easy-to-make meals that support a balanced lifestyle.</p>
 
 <div id="recipeList">
-    <div class="loading">Loading recipes...</div>
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading recipes...</div>
+    </div>
 </div>
+
+<button id="scrollTop" style="position: fixed; bottom: 80px; right: 20px; display: none;">⬆️</button>
 
 <footer class="footer">
     <pre>&copy;2025 @drclcomputers | </pre>
@@ -44,8 +52,10 @@
 
 <script src="source/JavaScript/config.js"></script>
 <script src="source/JavaScript/main.js"></script>
-<script src="source/JavaScript/healthy-recipes.js"></script>
 <script src="source/JavaScript/suggestions.js"></script>
+<script src="source/JavaScript/healthy-recipes.js"></script>
+<script src="source/JavaScript/recipes.js"></script>
 <script src="source/JavaScript/darkmodescript.js"></script>
+<script src="source/JavaScript/scroll.js"></script>
 </body>
 </html>

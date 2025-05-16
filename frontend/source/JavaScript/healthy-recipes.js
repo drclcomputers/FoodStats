@@ -81,9 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             })
                         });
                     }
+
+                    localStorage.setItem('currentRecipe', `📗 ${recipeName}`);
                     window.location.href = 'index.html';
                 } catch (error) {
-                    alert("Error loading recipe: " + error.message);
+                    showToast("Error loading recipe!");
                     btn.disabled = false;
                     btn.textContent = 'Use This Recipe';
                 }

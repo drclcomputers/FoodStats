@@ -6,16 +6,16 @@
 document.getElementById("ingredientForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
+    const name = document.getElementById("name").value.trim().toLowerCase();
     const grams = parseFloat(document.getElementById("grams").value);
 
     if (!name) {
-        alert("Please enter an ingredient name.");
+        showToast("Please enter an ingredient name.");
         return;
     }
 
     if (isNaN(grams) || grams <= 0) {
-        alert("Please enter a valid weight in grams.");
+        showToast("Please enter a valid weight in grams.");
         return;
     }
 
@@ -36,7 +36,9 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
             document.getElementById("name").value = "";
             document.getElementById("grams").value = "";
         })
-        .catch(err => alert(err.message));
+        .catch(error => {
+            showToast('Failed to add ingredient');
+        });
 });
 
 function fetchIngredients() {
@@ -47,6 +49,7 @@ function fetchIngredients() {
             list.innerHTML = "";
             data.forEach(ing => {
                 const item = document.createElement("li");
+                item.setAttribute('data-name', ing.name);
                 item.textContent = `${ing.name} (${ing.grams}g): ` +
                     `${ing.calories.toFixed(1)} kcal, ` +
                     `${ing.proteins.toFixed(1)}g protein, ` +
@@ -65,10 +68,19 @@ function fetchIngredients() {
         });
 }
 
+function updateRecipeSource(source) {
+    const sourceElement = document.getElementById('recipeSource');
+    sourceElement.textContent = source ? ` - ${source}` : '';
+}
+
 function deleteIngredient(name) {
-    fetchWithSession(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
-        method: 'DELETE'
-    })
+    const item = document.querySelector(`#ingredientList li[data-name="${name}"]`);
+    item.classList.add('removing');
+
+    setTimeout(() => {
+        fetchWithSession(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
+            method: 'DELETE'
+        })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to delete ingredient');
@@ -78,14 +90,28 @@ function deleteIngredient(name) {
         .then(data => {
             console.log(data);
             fetchIngredients();
+            updateRecipeSource('')
+            localStorage.removeItem('currentRecipe');
+            showToast('Ingredient deleted successfully');
         })
         .catch(error => {
             console.error('Delete error:', error);
-            alert('Failed to delete ingredient');
+            showToast('Failed to delete ingredient');
+            item.classList.remove('removing');
         });
+    }, 300);
 }
 
 function calculateTotal() {
+    const btn = document.querySelector('button[onclick="calculateTotal()"]');
+    const originalText = btn.textContent;
+
+    const spinner = document.createElement('div');
+    spinner.className = 'loading';
+    btn.textContent = '';
+    btn.appendChild(spinner);
+    btn.disabled = true;
+
     fetchWithSession(`${API_BASE}/calculate`)
         .then(res => res.json())
         .then(data => {
@@ -100,26 +126,171 @@ ${data.name} (${data.grams}g):
 
             document.getElementById("totalOutput").textContent = output;
         })
+        .finally(() => {
+            btn.removeChild(spinner);
+            btn.textContent = 'Calculate';
+            btn.disabled = false;
+        })
         .catch(err => {
             document.getElementById("totalOutput").textContent = "Error calculating total: " + err.message;
         });
 }
 
 function resetIngredients() {
-    fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"})
+    const list = document.getElementById("ingredientList");
+    list.classList.add('reset-animation');
+
+    setTimeout(() => {
+        fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"})
         .then(() => {
             fetchIngredients()
+            updateRecipeSource('');
+            showToast('List cleared');
+            localStorage.removeItem('currentRecipe');
             document.getElementById("recipeSearchInput").value = "";
             document.getElementById("recipeSuggestionsSection").style.display = "none";
             document.getElementById("recipeSuggestionsList").innerHTML = "";
             document.getElementById("recipeSuggestions").innerHTML = "";
             document.getElementById("totalOutput").innerHTML=`Click "Calculate" to see total nutrition.`;
         })
-        .catch(error => {
-            console.error("Error resetting ingredients:", error);
-            alert("Failed to reset ingredients");
+        .catch(() => {
+            showToast('Failed to clear list');
         });
+    }, 250);
 }
 
-fetchIngredients();
+document.addEventListener('DOMContentLoaded', () => {
+    const savedRecipe = localStorage.getItem('currentRecipe');
+    if (savedRecipe) {
+        updateRecipeSource(savedRecipe);
+    }
+});
 
+// Enter - submit
+document.getElementById("ingredientForm").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        if (e.target.tagName === "INPUT") {
+            e.preventDefault();
+            this.requestSubmit();
+        }
+    }
+});
+
+// Ctrl+I - Ingredient
+document.addEventListener("keydown", function(e) {
+    if (e.ctrlKey && e.key.toLowerCase() === "i") {
+        e.preventDefault();
+        document.getElementById("name").focus();
+    }
+});
+
+// Ctrl+G - Grams
+document.addEventListener("keydown", function(e) {
+    if (e.ctrlKey && e.key.toLowerCase() === "g") {
+        e.preventDefault();
+        document.getElementById("grams").focus();
+    }
+});
+
+// Ctrl + T - Reset, Ctrl + A - calculate
+document.addEventListener("keydown", function(e) {
+    if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        resetIngredients();
+    } else if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        calculateTotal();
+    }
+});
+
+// Ctrl + U - Export Recipe. Ctrl + O - Import Recipe
+document.addEventListener("keydown", function(e) {
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        document.getElementById('exportBtn').click();
+    } else if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault();
+        document.getElementById('importBtn').click();
+    }
+});
+
+// Ctrl + S - Search Recipes, Ctrl + H - Go Home
+document.addEventListener("keydown", function(e) {
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        document.getElementById('recipeSearchInput').focus();
+    } else if (e.ctrlKey && e.key === 'h') {
+        e.preventDefault();
+        window.location.href = 'index.html';
+    }
+});
+
+// Import/Export Recipes
+document.getElementById('exportBtn').addEventListener('click', async () => {
+    try {
+        const response = await fetchWithSession(`${API_BASE}/ingredients`);
+        const ingredients = await response.json();
+
+        const exportData = ingredients.map(ing => ({
+            name: ing.name,
+            grams: ing.grams
+        }));
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)],
+            {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ingredients_${new Date().toLocaleDateString()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Ingredients exported successfully');
+    } catch (error) {
+        showToast('Failed to export ingredients');
+    }
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+    document.getElementById('importInput').click();
+});
+
+document.getElementById('importInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        const text = await file.text();
+        const ingredients = JSON.parse(text);
+
+        if (!Array.isArray(ingredients)) {
+            throw new Error('Invalid format');
+        }
+
+        await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
+
+        for (const ing of ingredients) {
+            await fetchWithSession(`${API_BASE}/add-ingredient`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: ing.name,
+                    grams: ing.grams
+                })
+            });
+        }
+
+        const filename = file.name.replace(/\.[^/.]+$/, "");
+        updateRecipeSource(`📄 ${filename}`);
+
+        fetchIngredients();
+        calculateTotal();
+        e.target.value = '';
+        showToast(`Imported ingredients from ${file.name}`);
+    } catch (error) {
+        showToast('Failed to import ingredients');
+    }
+});
+
+
+
+fetchIngredients();

@@ -168,6 +168,30 @@ Give a ⭐️ if this project helped you!
 
 ## 📝 Changelog
 
+### Version 2.2.0
+
+- Added smooth animations throughout the application
+    - Ingredient deletion animations
+    - Recipe suggestions show/hide animations
+    - Loading spinners with animations
+    - Scroll-to-top button transitions
+- Implemented toast notifications system
+    - Replaced all alert boxes with non-intrusive toasts
+    - Success/error feedback for all user actions
+    - Auto-dismissing notifications
+- Enhanced user feedback
+    - Visual loading states for calculations
+    - Improved error handling with friendly messages
+    - Recipe source display showing current context
+- UI/UX improvements
+    - Better mobile responsiveness
+    - Smoother dark mode transitions
+    - Consistent styling across all pages
+- Bug fixes
+    - Fixed recipe suggestion animations
+    - Improved import/export functionality
+    - Enhanced cross-browser compatibility
+
 ### Version 2.0.0
 
 - Major UI overhaul: two-column recipe grid, improved navbar, and responsive design

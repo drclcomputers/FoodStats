@@ -52,6 +52,10 @@ input:focus {
     box-shadow: 0 0 5px rgba(82, 171, 152, 0.3);
 }
 
+section, .main-content {
+    margin-bottom: 32px;
+}
+
 button {
     background-color: #2b6777;
     color: white;
@@ -63,18 +67,59 @@ button {
 
 button:hover {
     background-color: #1b4f5f;
+    cursor: pointer;
 }
 
 .suggestions-list {
+    top: 100%;
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    margin-top: 12px;
     list-style: none;
-    background-color: white;
+    padding: 0;
     max-height: 150px;
     overflow-y: auto;
-    margin-top: 0;
-    padding-left: 0;
-    width: 50%;
+    height: auto;
+}
+
+#recipeSuggestionsList li.no-results {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 18px 0;
+}
+
+#ingredientForm {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto 25px;
+    position: relative;
+}
+
+#ingredientForm input[type="text"],
+#ingredientForm input[type="number"] {
+    flex: 2 1 0;
+    min-width: 0;
+}
+
+#ingredientForm button[type="submit"] {
+    flex: 1 0 auto;
+    white-space: nowrap;
+    height: 40px;
+    align-self: stretch;
+}
+
+#ingredientForm .suggestions-list {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
     z-index: 10;
-    border-radius: 8px;
 }
 
 .suggestions-list li {
@@ -83,12 +128,11 @@ button:hover {
 
 .suggestions-list li:hover {
     background-color: #f0f0f0;
-    cursor: pointer;
 }
 
 h2 {
     color: #52ab98;
-    margin-top: 35px;
+    margin-top: 32px;
     font-size: 1.7rem;
     font-weight: 600;
 }
@@ -112,19 +156,9 @@ h2 {
     font-weight: 500;
 }
 
-.delete-btn {
-    background: #e63946;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
 .button:hover {
     background: #c0303c;
+    cursor: pointer;
 }
 
 #totalOutput {
@@ -180,6 +214,7 @@ h2 {
 .nav-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
+    cursor: pointer;
 }
 
 .nav-item.active {
@@ -201,6 +236,7 @@ h2 {
 
 .nav-item:hover {
     color: #52ab98;
+    cursor: pointer;
 }
 
 .footer {
@@ -231,6 +267,7 @@ h2 {
 
 .footer button:hover {
     background: #f0f0f0;
+    cursor: pointer;
 }
 
 #recipeSearchForm {
@@ -281,13 +318,15 @@ h2 {
     gap: 10px;
 }
 
-.recipe-suggestion:last-child {
-    border-bottom: none;
+#recipeSuggestionsList:empty {
+    border: none;
+    max-height: 0;
+    padding: 0;
+    margin: 0;
 }
 
-.use-recipe-btn {
-    padding: 6px 12px;
-    font-size: 0.9em;
+.recipe-suggestion:last-child {
+    border-bottom: none;
 }
 
 .suggestions-list abbr {
@@ -298,20 +337,6 @@ h2 {
 
 .suggestions-list li:hover abbr {
     border-bottom-style: solid;
-}
-
-.hide-suggestions-btn {
-    padding: 6px 12px;
-    font-size: 0.9em;
-    background-color: #e0e0e0;
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.hide-suggestions-btn:hover {
-    background-color: #d0d0d0;
 }
 
 #recipeFilters {
@@ -339,37 +364,16 @@ h2 {
 
 #recipeList article {
     background: white;
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 10px;
+    padding: 18px 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border: 1px solid #eee;
+    margin-bottom: 18px;
 }
 
 #recipeList .description {
     color: #666;
     font-style: italic;
     margin: 10px 0;
-}
-
-#recipeList .use-recipe-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.use-recipe-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-    align-content: center;
-}
-
-.use-recipe-btn:hover {
-    background-color: #45a049;
 }
 
 .loading {
@@ -395,22 +399,21 @@ h2 {
     margin: 10px 0;
 }
 
-.use-recipe-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.use-recipe-btn:hover {
-    background-color: #45a049;
-}
-
 .loading {
     text-align: center;
     padding: 20px;
     color: #666;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    animation: toastIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }

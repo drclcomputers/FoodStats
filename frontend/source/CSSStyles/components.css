@@ -1,0 +1,49 @@
+.delete-btn {
+    background: #e63946;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button,
+.button,
+.hide-suggestions-btn {
+    background-color: #2b6777;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background 0.2s;
+    cursor: pointer;
+    margin: 0 4px;
+}
+
+button:hover,
+.button:hover,
+.use-recipe-btn:hover,
+.hide-suggestions-btn:hover {
+    background-color: #1b4f5f;
+}
+
+#recipeList .use-recipe-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.use-recipe-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    align-content: center;
+}

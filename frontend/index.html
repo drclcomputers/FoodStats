@@ -10,9 +10,12 @@
 <head>
     <meta charset="UTF-8">
     <title>FoodStats</title>
-    <link href="source/CSS%20Styles/mystyle.css" rel="stylesheet">
-    <link href="source/CSS%20Styles/mobile.css" rel="stylesheet">
-    <link href="source/CSS%20Styles/darkmodestyle.css" rel="stylesheet">
+    <link href="source/CSSStyles/mystyle.css" rel="stylesheet">
+    <link href="source/CSSStyles/components.css" rel="stylesheet">
+    <link href="source/CSSStyles/scrollbar.css" rel="stylesheet">
+    <link href="source/CSSStyles/mobile.css" rel="stylesheet">
+    <link href="source/CSSStyles/darkmodestyle.css" rel="stylesheet">
+    <link href="source/CSSStyles/animations.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="source/favicon.ico">
 </head>
 <body>
@@ -33,11 +36,13 @@
 <form id="ingredientForm">
     <input type="text" id="name" name="name" autocomplete="off" placeholder="Ingredient...">
     <input type="number" id="grams" autocomplete="off" placeholder="Grams" required/>
+    <ul id="suggestions" class="suggestions-list" style="cursor: pointer"></ul>
     <button type="submit">Add Ingredient</button>
-    <ul id="suggestions" class="suggestions-list"></ul>
 </form>
 
-<h2>Ingredients List</h2>
+<div class="list-header" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+    <h2>Ingredient List<span id="recipeSource"></span></h2>
+</div>
 <ul id="ingredientList"></ul>
 
 <div class="actions">
@@ -51,11 +56,19 @@
         <h2 style="margin: 0;">Recipe Suggestions</h2>
         <button class="hide-suggestions-btn" onclick="hideRecipeSuggestions()">✕ Hide</button>
     </div>
-    <ul id="recipeSuggestionsList" class="suggestions-list" style="position: static; width: 100%; max-height: none;"></ul>
+    <ul id="recipeSuggestionsList" class="suggestions-list" aria-live="polite" style="position: static; width: 100%; max-height: none;"></ul>
 </div>
 
 <h2>Total Nutrition</h2>
 <p id="totalOutput">Click "Calculate" to see total nutrition.</p>
+
+<div class="recipe-actions" style="text-align: center; margin: 20px 0;">
+    <button id="exportBtn">📤 Export Recipes</button>
+    <button id="importBtn">📥 Import Recipes</button>
+    <input type="file" id="importInput" accept=".json" style="display: none;">
+</div>
+
+<button id="scrollTop" style="position: fixed; bottom: 80px; right: 20px; display: none;">⬆️</button>
 
 <!--
 <h2>Save as Recipe</h2>
@@ -75,5 +88,7 @@
 <script src="source/JavaScript/suggestions.js"></script>
 <script src="source/JavaScript/recipes.js"></script>
 <script src="source/JavaScript/darkmodescript.js"></script>
+<script src="source/JavaScript/scroll.js"></script>
+
 </body>
 </html>

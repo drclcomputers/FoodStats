@@ -10,7 +10,7 @@ document.getElementById("saveRecipeForm").addEventListener("submit", function(e)
     const recipeDescription = document.getElementById("recipeDescription").value.trim();
 
     if (!recipeName) {
-        alert("Please enter a recipe name.");
+        showToast("Please enter a recipe name.");
         return;
     }
 
@@ -19,7 +19,7 @@ document.getElementById("saveRecipeForm").addEventListener("submit", function(e)
         .then(res => res.json())
         .then(ingredients => {
             if (!ingredients.length) {
-                alert("No ingredients to save!");
+                showToast("No ingredients to save!");
                 return;
             }
 
@@ -44,10 +44,10 @@ document.getElementById("saveRecipeForm").addEventListener("submit", function(e)
                     return res.json();
                 })
                 .then(() => {
-                    alert("Recipe saved!");
+                    showToast("Recipe saved!");
                     document.getElementById("recipeName").value = "";
                     document.getElementById("recipeDescription").value = "";
                 })
-                .catch(err => alert(err.message));
+                .catch(err => showToast("Error saving recipe!"));
         });
 });

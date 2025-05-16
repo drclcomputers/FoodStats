@@ -9,7 +9,6 @@ import (
 	"FoodStats/internal/config"
 	"FoodStats/internal/database"
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"log"
 	"net/http"
@@ -118,6 +117,7 @@ func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.Name = strings.TrimSpace(input.Name)
+	input.Name = strings.ToLower(input.Name)
 	if input.Grams <= 0 || input.Name == "" {
 		http.Error(w, "Invalid input values", http.StatusBadRequest)
 		return
@@ -142,7 +142,7 @@ func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(ingredient)
 
-	fmt.Printf("SessionID: %s, Ingredients: %+v\n", sessionID, userIngredients[sessionID])
+	//fmt.Printf("SessionID: %s, Ingredients: %+v\n", sessionID, userIngredients[sessionID])
 }
 
 func listIngredientsHandler(w http.ResponseWriter, r *http.Request) {
@@ -218,9 +218,10 @@ func deleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 
+	name = strings.ToLower(r.URL.Query().Get("name"))
 	newList := make([]config.Ingredient, 0)
 	for _, ing := range userIngredients[sessionID] {
-		if ing.Name != name {
+		if strings.ToLower(ing.Name) != name {
 			newList = append(newList, ing)
 		}
 	}

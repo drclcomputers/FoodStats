@@ -8,13 +8,22 @@ const nameInput = document.getElementById("name");
 const suggestionsList = document.getElementById("suggestions");
 
 if (nameInput && suggestionsList) {
+
     nameInput.addEventListener("input", function () {
         const query = nameInput.value.trim();
 
         if (query.length < 1) {
-            suggestionsList.innerHTML = "";
+            suggestionsList.classList.add('hiding');
+            setTimeout(() => {
+                suggestionsList.innerHTML = '';
+                suggestionsList.classList.remove('hiding');
+                suggestionsList.style.display = 'none';
+            }, 800);
             return;
         }
+
+        suggestionsList.style.display = 'block';
+        suggestionsList.classList.remove('hiding');
 
         fetchWithSession(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
             .then(res => res.json())
@@ -30,6 +39,12 @@ if (nameInput && suggestionsList) {
                     });
                     suggestionsList.appendChild(li);
                 });
+
+                if (data.length) {
+                    suggestionsList.style.display = "block";
+                } else {
+                    suggestionsList.style.display = "none";
+                }
             })
             .catch(err => {
                 console.error("Error fetching suggestions:", err);
@@ -37,12 +52,20 @@ if (nameInput && suggestionsList) {
             });
     });
 
-    document.addEventListener('click', function (e) {
-        if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
-            suggestionsList.innerHTML = "";
+    document.addEventListener('click', function(e) {
+        if (!recipeSearchInput.contains(e.target) && !recipeSuggestions.contains(e.target)) {
+            if (recipeSuggestions.innerHTML !== '') {
+                recipeSuggestions.classList.remove('showing');
+                recipeSuggestions.classList.add('hiding');
+                setTimeout(() => {
+                    recipeSuggestions.style.display = 'none';
+                    recipeSuggestions.classList.remove('hiding');
+                }, 800);
+            }
         }
     });
 }
+
 // Fetch and filter recipes as user types
 const recipeSearchInput = document.getElementById("recipeSearchInput");
 const recipeSuggestions = document.getElementById("recipeSuggestions");
@@ -55,7 +78,6 @@ recipeSearchInput.addEventListener("input", function () {
         return;
     }
 
-    // Fetch recipe list only once and cache it
     if (recipeListCache.length === 0) {
         fetchWithSession(`${API_BASE}/list-recipes`)
             .then(res => res.json())
@@ -86,7 +108,6 @@ function showRecipeSuggestions(query) {
 
     matches.forEach(recipe => {
         const li = document.createElement("li");
-        // Use abbr tag to show description on hover
         li.innerHTML = recipe.description
             ? `<abbr title="${recipe.description}">${recipe.name}</abbr>`
             : recipe.name;
@@ -111,29 +132,50 @@ function showRecipeSuggestions(query) {
                     });
                 }
 
+                localStorage.setItem('currentRecipe', `📗 ${recipe.name}`);
+                updateRecipeSource(`📗 ${recipe.name}`);
+
                 fetchIngredients();
                 calculateTotal();
 
                 window.location.href = "index.html";
 
+                showToast(`Loaded recipe: ${recipe.name}`);
+
             } catch (error) {
-                alert("Error loading recipe: " + error.message);
+                showToast('Failed to load recipe');
             }
         });
         recipeSuggestions.appendChild(li);
     });
+
+    recipeSuggestions.style.display = 'block';
+    recipeSuggestions.classList.remove('hiding');
+    recipeSuggestions.classList.add('showing');
+}
+
+function hideRecipeSuggestions() {
+    const suggestionsSection = document.getElementById("recipeSuggestionsSection");
+    hideSuggestions(suggestionsSection);
 }
 
 document.addEventListener('click', function(e) {
-    if (!recipeSearchInput.contains(e.target) && !recipeSuggestions.contains(e.target)) {
-        recipeSuggestions.innerHTML = "";
+    if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+        if (suggestionsList.innerHTML !== '') {
+            suggestionsList.classList.add('hiding');
+            setTimeout(() => {
+                suggestionsList.innerHTML = '';
+                suggestionsList.classList.remove('hiding');
+                suggestionsList.style.display = 'none';
+            }, 800);
+        }
     }
 });
 
 //recipe suggestions
 document.getElementById("suggestRecipesBtn").addEventListener("click", function()           {
     const suggestionsSection = document.getElementById("recipeSuggestionsSection");
-    suggestionsSection.style.display = "block";
+    showSuggestions(suggestionsSection);
 
     fetchWithSession(`${API_BASE}/suggest-recipes`)
         .then(res => res.json())
@@ -141,8 +183,8 @@ document.getElementById("suggestRecipesBtn").addEventListener("click", function(
             const list = document.getElementById("recipeSuggestionsList");
             list.innerHTML = "";
 
-            if (!suggestions.length) {
-                list.innerHTML = "<li>No matching recipes found.</li>";
+            if (!Array.isArray(suggestions) || suggestions.length === 0) {
+                list.innerHTML = '<li class="no-results">No recommendations found.</li>';
                 return;
             }
 
@@ -194,15 +236,37 @@ document.getElementById("suggestRecipesBtn").addEventListener("click", function(
                         calculateTotal();
                         suggestionsSection.style.display = "none";
                     } catch (error) {
-                        alert("Error loading recipe: " + error.message);
+                        showToast('Failed to load recipe');
                     }
                 });
 
                 list.appendChild(li);
             });
+        })
+        .catch(() => {
+            const list = document.getElementById("recipeSuggestionsList");
+            list.innerHTML = "<li>Error loading recommendations.</li>";
         });
 });
 
-function hideRecipeSuggestions() {
-    document.getElementById("recipeSuggestionsSection").style.display = "none";
+// Animations for Suggestions List
+function showSuggestions(element) {
+    element.style.display = 'block';
+    element.classList.remove('hiding');
+    element.classList.add('showing');
 }
+
+function hideSuggestions(element) {
+    if (!element || !element.innerHTML) return;
+
+    element.classList.remove('showing');
+    element.classList.add('hiding');
+
+    setTimeout(() => {
+        if (element.classList.contains('hiding')) {
+            element.style.display = 'none';
+            element.classList.remove('hiding');
+        }
+    }, 800);
+}
+
