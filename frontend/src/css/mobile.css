@@ -27,13 +27,14 @@
         width: 100%;
         max-width: 90vw;
         margin: 0 auto;
+        padding-bottom: 20px;
     }
 
     input, button {
         width: 100%;
         font-size: 2rem;
         padding: 15px;
-        margin-bottom: 15px;
+        margin: 5px 0;
     }
 
     #ingredientList {
@@ -68,9 +69,19 @@
 
     button {
         width: auto;
-        height: auto;
         font-size: 2rem;
         padding: 20px;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        height: auto;
+        min-height: 68px;
+        margin: 10px 0;
+        padding: 15px;
+        display: block;
+        font-size: 2rem;
+        line-height: 1.2;
     }
 
     .footer {

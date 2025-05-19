@@ -185,6 +185,6 @@ body.dark-mode::-webkit-scrollbar-thumb, html.dark-mode::-webkit-scrollbar-thumb
 
 body.dark-mode .toast {
     background: #424242;
-    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 

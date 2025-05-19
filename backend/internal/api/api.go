@@ -6,16 +6,20 @@
 package api
 
 import (
+	"FoodStats/internal/api/middleware"
 	"FoodStats/internal/config"
 	"FoodStats/internal/database"
 	"encoding/json"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog"
 	"log"
 	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -23,39 +27,62 @@ var (
 	mu              sync.Mutex
 )
 
+func NewRouter(logger zerolog.Logger) *mux.Router {
+	r := mux.NewRouter()
+
+	r.Use(middleware.Timeout(30 * time.Second))
+	r.Use(middleware.Logger(logger))
+	r.Use(middleware.Recoverer(logger))
+	r.Use(middleware.CORS())
+
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
+			return
+		}
+		http.NotFound(w, r)
+	}).Methods(http.MethodGet)
+
+	r.HandleFunc("/api/health", healthCheckHandler)
+	r.HandleFunc("/api/addingredient", addIngredientHandler)
+	r.HandleFunc("/api/calculate", calculateHandler)
+	r.HandleFunc("/api/reset", resetHandler)
+	r.HandleFunc("/api/ingredients", listIngredientsHandler)
+	r.HandleFunc("/api/deleteingredient", deleteIngredientHandler)
+	r.HandleFunc("/api/suggestions", suggestionHandler)
+	r.HandleFunc("/api/listrecipes", listRecipesHandler)
+	r.HandleFunc("/api/getrecipe", getRecipeHandler)
+	r.HandleFunc("/api/addrecipe", addRecipeHandler)
+	r.HandleFunc("/api/suggestrecipes", suggestRecipesHandler)
+
+	return r
+}
+
 func isDev() bool {
 	return os.Getenv("GO_ENV") != "production"
 }
 
-func enableCORS(w http.ResponseWriter, r *http.Request) {
-	origin := r.Header.Get("Origin")
-	if isDev() || origin == "" || origin == "file://" || origin == "null" {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-	} else {
-		w.Header().Set("Access-Control-Allow-Origin", "https://foodstats-frontend.onrender.com")
-		w.Header().Set("Vary", "Origin")
-	}
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-}
-
 func getSessionID(w http.ResponseWriter, r *http.Request) string {
-	// 1. Check for Electron
+	if sid := r.Header.Get("X-Session-ID"); sid != "" {
+		return sid
+	}
+
 	if sid := r.URL.Query().Get("session_id"); sid != "" {
 		return sid
 	}
-	// 2. Check for web
-	cookie, err := r.Cookie("session_id")
-	if err == nil && cookie.Value != "" {
+
+	if cookie, err := r.Cookie("session_id"); err == nil && cookie.Value != "" {
 		return cookie.Value
 	}
-	// 3. Create new session
+
 	sessionID := uuid.New().String()
 	http.SetCookie(w, &http.Cookie{
-		Name:  "session_id",
-		Value: sessionID,
-		Path:  "/",
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   !isDev(),
 	})
 	return sessionID
 }
@@ -64,25 +91,31 @@ func InitServer() {
 	database.InitDB()
 	defer database.CloseDB()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
-			return
-		}
-		http.NotFound(w, r)
-	})
+	/*
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
+				return
+			}
+			http.NotFound(w, r)
+		})
 
-	http.HandleFunc("/api/add-ingredient", addIngredientHandler)
-	http.HandleFunc("/api/calculate", calculateHandler)
-	http.HandleFunc("/api/reset", resetHandler)
-	http.HandleFunc("/api/ingredients", listIngredientsHandler)
-	http.HandleFunc("/api/delete-ingredient", deleteIngredientHandler)
-	http.HandleFunc("/api/suggestions", suggestionHandler)
-	http.HandleFunc("/api/list-recipes", listRecipesHandler)
-	http.HandleFunc("/api/get-recipe", getRecipeHandler)
-	http.HandleFunc("/api/add-recipe", addRecipeHandler)
-	http.HandleFunc("/api/suggest-recipes", suggestRecipesHandler)
+		http.HandleFunc("/api/add-ingredient", addIngredientHandler)
+		http.HandleFunc("/api/calculate", calculateHandler)
+		http.HandleFunc("/api/reset", resetHandler)
+		http.HandleFunc("/api/ingredients", listIngredientsHandler)
+		http.HandleFunc("/api/delete-ingredient", deleteIngredientHandler)
+		http.HandleFunc("/api/suggestions", suggestionHandler)
+		http.HandleFunc("/api/list-recipes", listRecipesHandler)
+		http.HandleFunc("/api/get-recipe", getRecipeHandler)
+		http.HandleFunc("/api/add-recipe", addRecipeHandler)
+		http.HandleFunc("/api/suggest-recipes", suggestRecipesHandler)
+	*/
+
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	r := NewRouter(logger)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -92,17 +125,17 @@ func InitServer() {
 	log.Printf("Server starting on port: %s", port)
 	log.Printf("Running in %s mode", map[bool]string{true: "development", false: "production"}[isDev()])
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -146,7 +179,11 @@ func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func listIngredientsHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -168,7 +205,11 @@ func listIngredientsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func calculateHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -195,13 +236,6 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
-
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -232,7 +266,6 @@ func deleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -254,7 +287,6 @@ func resetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func suggestionHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -283,7 +315,6 @@ func suggestionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func listRecipesHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -300,7 +331,6 @@ func listRecipesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecipeHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -323,11 +353,11 @@ func getRecipeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addRecipeHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -354,7 +384,6 @@ func addRecipeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w, r)
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -402,4 +431,26 @@ func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(suggestions)
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	dbStatus := "ok"
+	if err := database.DB.Ping(); err != nil {
+		dbStatus = "error"
+		log.Printf("Database health check failed: %v", err)
+	}
+
+	response := map[string]string{
+		"status":  "ok",
+		"db":      dbStatus,
+		"time":    time.Now().Format(time.RFC3339),
+		"version": "2.2.0",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding health check response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }

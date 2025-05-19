@@ -67,7 +67,10 @@ A modern desktop application for tracking nutritional information and discoverin
 3. **Build the backend**
     ```bash
     cd backend
+    # On Windows
     go build -o FoodStats.exe
+    # On Linux
+    go build -o FoodStats
     cd ..
     ```
 
@@ -105,15 +108,15 @@ A modern desktop application for tracking nutritional information and discoverin
 
 ## 📱 Screenshots
 
-![FoodStats Main Interface](/README%20RESOURCES/img_1.png)
-![FoodStats Healthy Recipes](/README%20RESOURCES/img.png)
-![FoodStats Recommendations](/README%20RESOURCES/img_2.png)
+![FoodStats Main Interface](/assets/img_1.png)
+![FoodStats Healthy Recipes](/assets/img.png)
+![FoodStats Recommendations](/assets/img_2.png)
 
 ---
 
-## 💻 System Requirements
+## 💻 System Requirements (Desktop App)
 
-- Windows 10 or later
+- Windows 10 or later / Linux (Ubuntu 20.04 or later recommended)
 - 4GB RAM minimum
 - 500MB disk space
 - Internet connection for installation

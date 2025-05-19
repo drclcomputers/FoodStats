@@ -12,19 +12,31 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
+	"time"
 )
 
 var DB *sql.DB
 
+func monitorDBStats(logger *log.Logger) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		stats := DB.Stats()
+		logger.Printf("DB Stats - Open: %d, Idle: %d, InUse: %d, WaitCount: %d",
+			stats.OpenConnections,
+			stats.Idle,
+			stats.InUse,
+			stats.WaitCount)
+	}
+}
+
 func InitDB() {
 	var err error
+	logger := log.New(os.Stdout, "[DB] ", log.LstdFlags|log.Lshortfile)
+
 	possiblePaths := []string{
 		"nutrition_data.db",
-		"./database/nutrition_data.db",
-		"./internal/database/nutrition_data.db",
-		"./backend/database/nutrition_data.db",
-		"./resources/backend/database/nutrition_data.db",
-		"../backend/database/nutrition_data.db",
 		"./database/nutrition_data.db",
 	}
 
@@ -32,6 +44,7 @@ func InitDB() {
 	for _, path := range possiblePaths {
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
 			dbPath = path
+			logger.Printf("Found database at: %s", path)
 			break
 		}
 	}
@@ -42,12 +55,20 @@ func InitDB() {
 
 	DB, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
-		log.Fatal("DB connect error:", err)
+		logger.Fatal("DB connect error:", err)
 	}
+
+	DB.SetMaxOpenConns(25)
+	DB.SetMaxIdleConns(5)
+	DB.SetConnMaxLifetime(5 * time.Minute)
+
 	if err := DB.Ping(); err != nil {
-		log.Fatal("DB ping failed:", err)
+		logger.Fatal("DB ping failed:", err)
 	}
-	log.Printf("Database connected successfully at: %s", dbPath)
+
+	go monitorDBStats(logger)
+
+	logger.Printf("Database connected successfully at: %s", dbPath)
 }
 
 func CloseDB() {

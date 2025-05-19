@@ -3,7 +3,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, nativeTheme } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -16,10 +16,13 @@ function isDev() {
 }
 
 function getBackendPath() {
+    const platform = process.platform;
+    const executableName = platform === 'win32' ? 'FoodStats.exe' : 'FoodStats';
+
     if (isDev()) {
-        return path.join(__dirname, 'backend', 'FoodStats.exe');
+        return path.join(__dirname, 'backend', executableName);
     }
-    return path.join(process.resourcesPath, 'backend', 'FoodStats.exe');
+    return path.join(process.resourcesPath, 'backend', executableName);
 }
 
 function waitForServer(callback) {
@@ -57,6 +60,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
+            //preload: path.join(__dirname, 'preload.js')
         },
     });
 
@@ -80,11 +84,18 @@ function startBackend() {
     const backendPath = getBackendPath();
     const backendDir = path.dirname(backendPath);
 
+    if (process.platform !== 'win32') {
+        try {
+            fs.chmodSync(backendPath, '755');
+        } catch (err) {
+            console.error('Error making backend executable:', err);
+        }
+    }
+
     console.log('Starting backend from:', backendPath);
     console.log('Backend directory:', backendDir);
     console.log('Working directory:', process.cwd());
 
-    // Copy database to working directory if in production
     if (!isDev()) {
         const dbSource = path.join(process.resourcesPath, 'database', 'nutrition_data.db');
         const dbDest = path.join(backendDir, 'database', 'nutrition_data.db');
@@ -160,4 +171,17 @@ app.on('before-quit', () => {
     if (backendProcess) {
         backendProcess.kill();
     }
+});
+
+ipcMain.handle('dark-mode:toggle', () => {
+    if (nativeTheme.shouldUseDarkColors) {
+        nativeTheme.themeSource = 'light';
+    } else {
+        nativeTheme.themeSource = 'dark';
+    }
+    return nativeTheme.shouldUseDarkColors;
+});
+
+ipcMain.handle('dark-mode:system', () => {
+    nativeTheme.themeSource = 'system';
 });

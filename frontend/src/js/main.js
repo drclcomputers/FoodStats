@@ -6,20 +6,27 @@
 document.getElementById("ingredientForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
-    const name = document.getElementById("name").value.trim().toLowerCase();
-    const grams = parseFloat(document.getElementById("grams").value);
+    const nameInput = document.getElementById("name");
+    const gramsInput = document.getElementById("grams");
+    const name = nameInput.value.trim().toLowerCase();
+    const grams = parseFloat(gramsInput.value);
+
+    nameInput.classList.remove('input-error');
+    gramsInput.classList.remove('input-error');
 
     if (!name) {
+        nameInput.classList.add('input-error');
         showToast("Please enter an ingredient name.");
         return;
     }
 
     if (isNaN(grams) || grams <= 0) {
+        gramsInput.classList.add('input-error');
         showToast("Please enter a valid weight in grams.");
         return;
     }
 
-    fetchWithSession(`${API_BASE}/add-ingredient`, {
+    fetchWithSession(`${API_BASE}/addingredient`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, grams })
@@ -27,7 +34,7 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
         .then(res => {
             if (!res.ok) {
                 if (res.status === 404) throw new Error("Unknown ingredient!");
-                throw new Error("Failed to add ingredient! Ingredient may have already been added!");
+                showToast("Failed to add ingredient! Ingredient may have already been added!");
             }
             return res.json();
         })
@@ -35,10 +42,21 @@ document.getElementById("ingredientForm").addEventListener("submit", function(e)
             fetchIngredients();
             document.getElementById("name").value = "";
             document.getElementById("grams").value = "";
+            nameInput.classList.remove('input-error');
+            gramsInput.classList.remove('input-error');
         })
         .catch(error => {
-            showToast('Failed to add ingredient');
+            nameInput.classList.add('input-error');
+            showToast('Failed to add ingredient! Invalid ingredient!');
         });
+});
+
+document.getElementById("name").addEventListener("input", function() {
+    this.classList.remove('input-error');
+});
+
+document.getElementById("grams").addEventListener("input", function() {
+    this.classList.remove('input-error');
 });
 
 function fetchIngredients() {
@@ -78,7 +96,7 @@ function deleteIngredient(name) {
     item.classList.add('removing');
 
     setTimeout(() => {
-        fetchWithSession(`${API_BASE}/delete-ingredient?name=${encodeURIComponent(name)}`, {
+        fetchWithSession(`${API_BASE}/deleteingredient?name=${encodeURIComponent(name)}`, {
             method: 'DELETE'
         })
         .then(response => {
@@ -92,7 +110,7 @@ function deleteIngredient(name) {
             fetchIngredients();
             updateRecipeSource('')
             localStorage.removeItem('currentRecipe');
-            showToast('Ingredient deleted successfully');
+            showToast(`Removed ${name}`);
         })
         .catch(error => {
             console.error('Delete error:', error);
@@ -134,6 +152,8 @@ ${data.name} (${data.grams}g):
         .catch(err => {
             document.getElementById("totalOutput").textContent = "Error calculating total: " + err.message;
         });
+
+    showToast("Nutrition calculated");
 }
 
 function resetIngredients() {
@@ -145,7 +165,7 @@ function resetIngredients() {
         .then(() => {
             fetchIngredients()
             updateRecipeSource('');
-            showToast('List cleared');
+            showToast("All ingredients cleared");
             localStorage.removeItem('currentRecipe');
             document.getElementById("recipeSearchInput").value = "";
             document.getElementById("recipeSuggestionsSection").style.display = "none";
@@ -231,6 +251,11 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
         const response = await fetchWithSession(`${API_BASE}/ingredients`);
         const ingredients = await response.json();
 
+        if (ingredients.length === 0) {
+            showToast("No ingredients to export");
+            return;
+        }
+
         const exportData = ingredients.map(ing => ({
             name: ing.name,
             grams: ing.grams
@@ -244,7 +269,7 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
         a.download = `ingredients_${new Date().toLocaleDateString()}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        showToast('Ingredients exported successfully');
+        showToast("Recipe exported successfully");
     } catch (error) {
         showToast('Failed to export ingredients');
     }
@@ -263,13 +288,14 @@ document.getElementById('importInput').addEventListener('change', async (e) => {
         const ingredients = JSON.parse(text);
 
         if (!Array.isArray(ingredients)) {
-            throw new Error('Invalid format');
+            showToast('Invalid format');
+            return
         }
 
         await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
 
         for (const ing of ingredients) {
-            await fetchWithSession(`${API_BASE}/add-ingredient`, {
+            await fetchWithSession(`${API_BASE}/addingredient`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -290,7 +316,5 @@ document.getElementById('importInput').addEventListener('change', async (e) => {
         showToast('Failed to import ingredients');
     }
 });
-
-
 
 fetchIngredients();

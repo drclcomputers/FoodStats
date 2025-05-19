@@ -10,13 +10,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Healthy Recipes - FoodStats</title>
-    <link href="source/CSSStyles/mystyle.css" rel="stylesheet">
-    <link href="source/CSSStyles/components.css" rel="stylesheet">
-    <link href="source/CSSStyles/scrollbar.css" rel="stylesheet">
-    <link href="source/CSSStyles/mobile.css" rel="stylesheet">
-    <link href="source/CSSStyles/darkmodestyle.css" rel="stylesheet">
-    <link href="source/CSSStyles/animations.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="source/favicon.ico">
+    <link href="src/css/mystyle.css" rel="stylesheet">
+    <link href="src/css/components.css" rel="stylesheet">
+    <link href="src/css/scrollbar.css" rel="stylesheet">
+    <link href="src/css/mobile.css" rel="stylesheet">
+    <link href="src/css/darkmodestyle.css" rel="stylesheet">
+    <link href="src/css/animations.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="src/favicon.ico">
 </head>
 <body style="text-align: left">
 <nav class="navbar">
@@ -25,7 +25,7 @@
         <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
         <li><a href="healthy-recipes.html" class="nav-item active">Healthy Recipes</a></li>
         <li>
-            <form id="recipeSearchForm" onsubmit="return false;">
+            <form id="recipeSearchForm">
                 <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
                 <ul id="recipeSuggestions" class="suggestions-list" style="position:absolute; left:0; top:100%; width:100%;"></ul>
             </form>
@@ -50,12 +50,12 @@
     <button id="toggleDarkMode">🌙 Toggle Dark Mode</button>
 </footer>
 
-<script src="source/JavaScript/config.js"></script>
-<script src="source/JavaScript/main.js"></script>
-<script src="source/JavaScript/suggestions.js"></script>
-<script src="source/JavaScript/healthy-recipes.js"></script>
-<script src="source/JavaScript/recipes.js"></script>
-<script src="source/JavaScript/darkmodescript.js"></script>
-<script src="source/JavaScript/scroll.js"></script>
+<script src="src/js/config.js"></script>
+<script src="src/js/main.js"></script>
+<script src="src/js/suggestions.js"></script>
+<script src="src/js/healthy-recipes.js"></script>
+<script src="src/js/recipes.js"></script>
+<script src="src/js/darkmodescript.js"></script>
+<script src="src/js/scroll.js"></script>
 </body>
 </html>

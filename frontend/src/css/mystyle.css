@@ -20,6 +20,7 @@ body {
     padding-top: 5%;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
 }
 
 h1 {
@@ -167,12 +168,12 @@ h2 {
     max-width: 650px;
     margin: 20px auto;
     border-radius: 8px;
+    border: 2px solid #52ab98;
     font-family: monospace;
     white-space: pre-wrap;
     font-size: 1.1rem;
     font-weight: 500;
     color: #1b4f5f;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 .actions {
@@ -206,37 +207,30 @@ h2 {
     color: white;
     padding: 0.8rem 1.5rem;
     border-radius: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
     position: relative;
 }
 
-.nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    cursor: pointer;
+/* Add extending underline effect */
+.nav-item:not(.active)::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #52ab98;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
 }
 
+.nav-item:not(.active):hover::after {
+    width: 80%;
+}
+
+/* Keep active style unchanged */
 .nav-item.active {
     background-color: rgba(255, 255, 255, 0.2);
     font-weight: 600;
-}
-
-.nav-item.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30%;
-    height: 3px;
-    background-color: #52ab98;
-    border-radius: 2px;
-}
-
-.nav-item:hover {
-    color: #52ab98;
-    cursor: pointer;
 }
 
 .footer {
@@ -407,13 +401,76 @@ h2 {
 
 .toast {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 30px;
+    right: 30px;
     background: #333;
     color: white;
-    padding: 12px 24px;
+    padding: 15px 30px;
     border-radius: 8px;
+    font-size: 1.1em;
     animation: toastIn 0.3s ease, fadeOut 0.3s ease 2.7s;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.recipe-card {
+    opacity: 0;
+}
+
+.recipe-card.visible {
+    animation: slideInFromBottom 0.6s ease forwards;
+}
+
+.recipe-card.initial-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.input-error {
+    border-color: #e63946 !important;
+    background-color: rgba(230, 57, 70, 0.1) !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+.recommendations-list article {
+    opacity: 0;
+    transition: all 0.6s ease;
+}
+
+.recommendations-list article.visible {
+    opacity: 1;
+    transform: translateX(0);
+    animation: slideInFromRight 0.6s ease forwards;
+}
+
+.recommendations-list article.hidden {
+    opacity: 0;
+    transform: translateX(50px);
+    animation: slideOutToRight 0.6s ease forwards;
+}
+
+.recommendations-list article:nth-child(1),
+.recommendations-list article:nth-child(2),
+.recommendations-list article:nth-child(3),
+.recommendations-list article:nth-child(4) {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.recommendations-list article {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.recommendations-list article:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(82, 171, 152, 0.15);
+}
+
+.recommendations-list article h2 {
+    transition: color 0.3s ease;
+}
+
+.recommendations-list article:hover h2 {
+    color: #52ab98;
 }

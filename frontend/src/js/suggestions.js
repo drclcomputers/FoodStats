@@ -79,7 +79,7 @@ recipeSearchInput.addEventListener("input", function () {
     }
 
     if (recipeListCache.length === 0) {
-        fetchWithSession(`${API_BASE}/list-recipes`)
+        fetchWithSession(`${API_BASE}/listrecipes`)
             .then(res => res.json())
             .then(recipes => {
                 recipeListCache = recipes;
@@ -118,30 +118,40 @@ function showRecipeSuggestions(query) {
 
             try {
                 await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"});
-                const response = await fetchWithSession(`${API_BASE}/get-recipe?name=${encodeURIComponent(recipe.name)}`);
+                const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(recipe.name)}`);
                 const recipeDetails = await response.json();
 
+                let hasError = false;
                 for (const ingredient of recipeDetails.ingredients) {
-                    await fetchWithSession(`${API_BASE}/add-ingredient`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            name: ingredient.name,
-                            grams: ingredient.grams
-                        })
-                    });
+                    try {
+                        const ingResponse = await fetchWithSession(`${API_BASE}/addingredient`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                name: ingredient.name,
+                                grams: ingredient.grams
+                            })
+                        });
+
+                        if (!ingResponse.ok) {
+                            showToast(`Failed to add: ${ingredient.name}`);
+                            hasError = true;
+                            continue;
+                        }
+                    } catch (err) {
+                        showToast(`Error adding: ${ingredient.name}`);
+                        hasError = true;
+                        continue;
+                    }
                 }
 
                 localStorage.setItem('currentRecipe', `📗 ${recipe.name}`);
-                updateRecipeSource(`📗 ${recipe.name}`);
 
-                fetchIngredients();
-                calculateTotal();
-
-                window.location.href = "index.html";
-
-                showToast(`Loaded recipe: ${recipe.name}`);
-
+                if (!hasError) {
+                    window.location.href = "index.html";
+                } else {
+                    showToast('Some ingredients could not be added');
+                }
             } catch (error) {
                 showToast('Failed to load recipe');
             }
@@ -173,20 +183,23 @@ document.addEventListener('click', function(e) {
 });
 
 //recipe suggestions
-document.getElementById("suggestRecipesBtn").addEventListener("click", function()           {
+document.getElementById("suggestRecipesBtn").addEventListener("click", function() {
     const suggestionsSection = document.getElementById("recipeSuggestionsSection");
     showSuggestions(suggestionsSection);
 
-    fetchWithSession(`${API_BASE}/suggest-recipes`)
+    fetchWithSession(`${API_BASE}/suggestrecipes`)
         .then(res => res.json())
         .then(suggestions => {
             const list = document.getElementById("recipeSuggestionsList");
             list.innerHTML = "";
 
             if (!Array.isArray(suggestions) || suggestions.length === 0) {
+                showToast("No matching recipes found");
                 list.innerHTML = '<li class="no-results">No recommendations found.</li>';
                 return;
             }
+
+            showToast(`Found ${suggestions.length} matching recipes`);
 
             suggestions.sort((a, b) => {
                 const percentA = (a.matches / a.total) * 100;
@@ -218,11 +231,11 @@ document.getElementById("suggestRecipesBtn").addEventListener("click", function(
                 li.querySelector('.use-recipe-btn').addEventListener('click', async () => {
                     try {
                         await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
-                        const response = await fetchWithSession(`${API_BASE}/get-recipe?name=${encodeURIComponent(s.name)}`);
+                        const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(s.name)}`);
                         const recipeDetails = await response.json();
 
                         for (const ingredient of recipeDetails.ingredients) {
-                            await fetchWithSession(`${API_BASE}/add-ingredient`, {
+                            await fetchWithSession(`${API_BASE}/addingredient`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
@@ -247,6 +260,15 @@ document.getElementById("suggestRecipesBtn").addEventListener("click", function(
             const list = document.getElementById("recipeSuggestionsList");
             list.innerHTML = "<li>Error loading recommendations.</li>";
         });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const recipeSearchForm = document.getElementById('recipeSearchForm');
+    if (recipeSearchForm) {
+        recipeSearchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+    }
 });
 
 // Animations for Suggestions List

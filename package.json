@@ -1,6 +1,6 @@
 {
   "name": "foodstats-desktop",
-  "version": "2.2.0",
+  "version": "2.5.0",
   "description": "Desktop application for tracking nutritional information",
   "main": "main.js",
   "scripts": {
@@ -12,8 +12,8 @@
   "author": "@drclcomputers",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
   },
   "build": {
     "appId": "com.drclcomputers.foodstats",
@@ -23,8 +23,8 @@
     },
     "extraResources": [
       {
-        "from": "backend/FoodStats.exe",
-        "to": "backend/FoodStats.exe"
+        "from": "backend/${os}/${arch}/FoodStats${platform==='win32'?'.exe':''}",
+        "to": "backend/FoodStats${platform==='win32'?'.exe':''}"
       },
       {
         "from": "frontend",
@@ -37,7 +37,15 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "README RESOURCES/icon.png"
+      "icon": "assets/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Utility"
     },
     "asar": true
   }

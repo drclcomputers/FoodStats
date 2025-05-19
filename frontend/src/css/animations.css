@@ -1,3 +1,10 @@
+/*
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+*/
+
 @keyframes ingredientAdded {
     0%   { background: #d4f8e8; }
     100% { background: white; }
@@ -202,5 +209,65 @@ body {
     100% {
         transform: translateY(0);
         opacity: 1;
+    }
+}
+
+@keyframes navHover {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+    100% {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes navActiveGlow {
+    0% {
+        box-shadow: 0 0 0 rgba(82, 171, 152, 0);
+    }
+    100% {
+        box-shadow: 0 0 15px rgba(82, 171, 152, 0.3);
+    }
+}
+
+@keyframes slideInFromBottom {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutToRight {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(50px);
     }
 }
