@@ -129,6 +129,7 @@ A modern desktop application for tracking nutritional information and discoverin
 - 4GB RAM minimum
 - 500MB disk space
 - Internet connection for installation
+- Python >=3.11 for AI recommendations
 
 ---
 
