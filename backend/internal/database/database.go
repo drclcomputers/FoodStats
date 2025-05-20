@@ -39,6 +39,11 @@ func InitDB() error {
 	possiblePaths := []string{
 		"nutrition_data.db",
 		"./database/nutrition_data.db",
+		"./internal/database/nutrition_data.db",
+		"./backend/database/nutrition_data.db",
+		"./resources/backend/database/nutrition_data.db",
+		"../backend/database/nutrition_data.db",
+		"./database/nutrition_data.db",
 	}
 
 	var dbPath string
