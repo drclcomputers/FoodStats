@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -15,9 +16,25 @@ type AIService struct {
 	mlsPath    string
 }
 
+func detectPythonExecutable() string {
+	if runtime.GOOS == "windows" {
+		if path, err := exec.LookPath("python"); err == nil {
+			return path
+		}
+	} else {
+		if path, err := exec.LookPath("python3"); err == nil {
+			return path
+		}
+		if path, err := exec.LookPath("python"); err == nil {
+			return path
+		}
+	}
+	return "python"
+}
+
 func NewAIService() *AIService {
 	return &AIService{
-		pythonPath: "python",
+		pythonPath: detectPythonExecutable(),
 		mlsPath:    filepath.Join("internal", "mls"),
 	}
 }
