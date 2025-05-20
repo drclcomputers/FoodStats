@@ -212,6 +212,18 @@ body {
     }
 }
 
+
+@keyframes toastOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
 @keyframes navHover {
     0% {
         transform: translateY(0);
@@ -234,14 +246,23 @@ body {
 }
 
 @keyframes slideInFromBottom {
-    0% {
+    from {
         opacity: 0;
         transform: translateY(50px);
     }
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.recipe-card {
+    opacity: 0;
+    transform: translateY(50px);
+}
+
+.recipe-card.visible {
+    animation: slideInFromBottom 0.6s ease forwards;
 }
 
 @keyframes shake {
@@ -271,3 +292,22 @@ body {
         transform: translateX(50px);
     }
 }
+
+#aiAnalysisSection.hiding {
+    animation: fadeOut 0.8s ease forwards;
+}
+
+#aiAnalysisSection {
+    animation: fadeIn 0.8s ease;
+}
+
+.recommendations-grid article {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: none;
+}
+
+.recommendations-grid article.visible {
+    animation: slideInFromBottom 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

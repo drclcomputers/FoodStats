@@ -1,0 +1,212 @@
+/*
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+*/
+
+body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode h1 {
+    color: #90caf9;
+}
+
+body.dark-mode,
+html.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .navbar,
+body.dark-mode .footer {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .container,
+body.dark-mode #ingredientForm,
+body.dark-mode #ingredientList,
+body.dark-mode #ingredientList li,
+body.dark-mode #totalOutput,
+body.dark-mode .ai-analysis,
+body.dark-mode .recipe-card,
+body.dark-mode .suggestions-list,
+body.dark-mode #recipeSuggestionsSection {
+    background: #23272e;
+    color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+body.dark-mode .recipe-card h3 {
+    background: #23272e;
+    color: #e0e0e0;
+    font: bold 1.2rem 'Poppins', sans-serif;
+    text-decoration: underline
+}
+
+body.dark-mode .recipe-card p {
+    color: #e0e0e0;
+}
+
+body.dark-mode .score-circle {
+    background: linear-gradient(135deg, #2b6777, #52ab98);
+    color: #fff;
+}
+
+body.dark-mode button,
+body.dark-mode .button {
+    background: #1565c0;
+    color: #fff;
+}
+
+body.dark-mode button:hover,
+body.dark-mode .button:hover {
+    background: #0d47a1;
+}
+
+body.dark-mode .delete-btn {
+    background: #ef5350;
+}
+
+body.dark-mode .delete-btn:hover {
+    background: #c62828;
+}
+
+body.dark-mode #recipeSuggestions,
+body.dark-mode #suggestions,
+body.dark-mode .suggestions-list,
+body.dark-mode #recipeSuggestionsList {
+    background: #111 !important;
+    color: #eee !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+body.dark-mode #recipeSuggestions li,
+body.dark-mode #suggestions li,
+body.dark-mode .suggestions-list li,
+body.dark-mode #recipeSuggestionsList li {
+    border-bottom: 1px solid #222;
+    color: #e0e0e0;
+}
+
+body.dark-mode #recipeSuggestions li:hover,
+body.dark-mode #suggestions li:hover,
+body.dark-mode .suggestions-list li:hover,
+body.dark-mode #recipeSuggestionsList li:hover {
+    background: #222;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: #181a1b;
+    color: #e0e0e0;
+    border-color: #333;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    border-color: #52ab98;
+    box-shadow: 0 0 5px rgba(82,171,152,0.15);
+    outline: none;
+}
+
+body.dark-mode #recipeSearchForm {
+    background: #181a1b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+body.dark-mode #recipeSearchInput {
+    color: #eee;
+    background: transparent;
+}
+
+body.dark-mode #recipeSearchInput::placeholder {
+    color: #888;
+}
+
+body.dark-mode #recipeSuggestions {
+    background: #111 !important;
+    color: #eee !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+
+body.dark-mode #recipeSuggestions li {
+    border-bottom: 1px solid #222;
+}
+
+body.dark-mode #recipeSuggestions li:hover {
+    background: #222;
+}
+
+body.dark-mode #name,
+body.dark-mode #grams {
+    background: #181a1b;
+    border-color: #333;
+    color: #e0e0e0;
+}
+
+body.dark-mode #name:focus,
+body.dark-mode #grams:focus {
+    border-color: #52ab98;
+    box-shadow: 0 4px 16px rgba(82,171,152,0.18);
+}
+
+body.dark-mode #aiAnalysisSection {
+    background: #181a1b;
+    color: #e0e0e0;
+}
+
+body.dark-mode .ai-hide-btn {
+    color: #90caf9;
+}
+
+body.dark-mode .ai-hide-btn:hover {
+    background: rgba(144, 202, 249, 0.1);
+}
+
+body.dark-mode .ai-hide-btn {
+    color: #90caf9;
+}
+
+body.dark-mode .ai-hide-btn:hover {
+    background: rgba(144, 202, 249, 0.1);
+}
+
+body.dark-mode .subtitle {
+    color: #aaa;
+}
+
+body.dark-mode .recommendations-grid article {
+    background: #23272e;
+}
+
+body.dark-mode .recommendations-grid h2 {
+    color: #90caf9;
+}
+
+body.dark-mode .recommendations-grid p {
+    color: #e0e0e0;
+}
+
+body.dark-mode .suggestions-list::-webkit-scrollbar {
+    background: #afafaf;
+}
+body.dark-mode .suggestions-list::-webkit-scrollbar-thumb {
+    background: #757575;
+}
+
+body.dark-mode, html.dark-mode {
+    scrollbar-color: #757575 #1e1e1e;
+}
+
+body.dark-mode::-webkit-scrollbar, html.dark-mode::-webkit-scrollbar {
+    background: #1e1e1e;
+}
+body.dark-mode::-webkit-scrollbar-thumb, html.dark-mode::-webkit-scrollbar-thumb {
+    background: #757575;
+}
+

@@ -24,6 +24,7 @@ const SESSION_ID = (() => {
 
 async function fetchWithSession(path, options = {}) {
     try {
+
         const isHealthy = await checkServerHealth();
         if (!isHealthy) {
             throw new Error('Server is not healthy');
@@ -31,8 +32,11 @@ async function fetchWithSession(path, options = {}) {
 
         options.headers = {
             ...options.headers,
-            'X-Session-ID': SESSION_ID
+            'X-Session-ID': SESSION_ID,
+            'Content-Type': 'application/json',
         };
+
+        options.credentials = 'same-origin';
 
         const response = await fetch(path, options);
         if (!response.ok) {
@@ -47,23 +51,26 @@ async function fetchWithSession(path, options = {}) {
 }
 
 function showToast(message) {
-    const toasts = JSON.parse(localStorage.getItem('toasts') || '[]');
-    toasts.push({
-        message,
-        timestamp: new Date().getTime()
-    });
-    localStorage.setItem('toasts', JSON.stringify(toasts));
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
 
     const toast = document.createElement('div');
-    toast.classList.add('toast');
+    toast.className = 'toast';
     toast.textContent = message;
-    document.body.appendChild(toast);
+    container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s ease forwards';
+        toast.style.animation = 'toastOut 0.3s ease forwards';
         setTimeout(() => {
-            if (document.body.contains(toast)) {
+            if (container.contains(toast)) {
                 toast.remove();
+            }
+            if (container.children.length === 0) {
+                container.remove();
             }
         }, 300);
     }, 3000);
@@ -86,11 +93,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function checkServerHealth() {
     try {
-        const response = await fetch(`${API_BASE}/health`);
+        const response = await fetch(`${API_BASE}/health`, {
+            headers: {
+                'X-Session-ID': SESSION_ID,
+                'Content-Type': 'application/json',
+            }
+        });
+        console.log('Health check response:', response);
         const data = await response.json();
-        return data.status === 'ok' && data.db === 'ok';
+        return data.status === 'ok' && data.services.database === 'ok';
     } catch (error) {
         console.error('Health check failed:', error);
         return false;
     }
 }
+
+
+

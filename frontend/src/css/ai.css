@@ -1,0 +1,171 @@
+.ai-analysis {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 650px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.analysis-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+    width: 100%;
+}
+
+.analysis-results {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #52ab98, #2b6777);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin: 20px auto;
+    box-shadow: 0 4px 12px rgba(43, 103, 119, 0.2);
+}
+
+.analysis-results h3 {
+    color: #2b6777;
+    font-size: 1.4rem;
+    margin: 20px 0 15px;
+    width: 100%;
+    text-align: center;
+}
+
+.nutrient-bars {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.nutrient-bar {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.nutrient-bar label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #2b6777;
+}
+
+.nutrient-bar .bar {
+    height: 20px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.nutrient-bar .fill {
+    height: 100%;
+    background: linear-gradient(to right, #52ab98, #2b6777);
+    transition: width 0.5s ease;
+}
+
+.match-score {
+    color: #2b6777;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* ... existing styles ... */
+
+.metrics-breakdown {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.metric {
+    margin: 10px 0;
+}
+
+.metric span {
+    font-size: 0.8em;
+    color: #666;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.metric-bar {
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.metric-bar .fill {
+    height: 100%;
+    background: #3498db;
+    transition: width 0.5s ease;
+}
+
+.smart-recommendations {
+    list-style: none;
+    padding: 0;
+}
+
+.smart-recommendations li {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.smart-recommendations li:hover {
+    transform: translateX(5px);
+}
+
+.ai-icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.score {
+    float: right;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.score.excellent {
+    background: #2ecc71;
+    color: white;
+}
+
+.score.good {
+    background: #f1c40f;
+    color: white;
+}
+
+.score.needs-improvement {
+    background: #e74c3c;
+    color: white;
+}
+
+.score-circle {
+    transition: background-color 0.5s ease;
+}

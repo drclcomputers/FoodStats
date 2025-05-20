@@ -3,292 +3,198 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-//Fetch and filter ingredients as user types
-const nameInput = document.getElementById("name");
-const suggestionsList = document.getElementById("suggestions");
+class SuggestionsManager {
+    constructor() {
+        this.nameInput = document.getElementById("name");
+        this.suggestionsList = document.getElementById("suggestions");
+        this.recipeSearchInput = document.getElementById("recipeSearchInput");
+        this.recipeSuggestions = document.getElementById("recipeSuggestions");
+        this.recipeListCache = [];
+        
+        this.initializeEventListeners();
+    }
 
-if (nameInput && suggestionsList) {
+    initializeEventListeners() {
+        // Ingredient suggestions
+        if (this.nameInput && this.suggestionsList) {
+            this.nameInput.addEventListener("input", () => this.handleIngredientInput());
+            document.addEventListener('click', (e) => this.handleClickOutside(e));
+        }
 
-    nameInput.addEventListener("input", function () {
-        const query = nameInput.value.trim();
+        // Recipe suggestions
+        if (this.recipeSearchInput) {
+            this.recipeSearchInput.addEventListener("input", () => this.handleRecipeInput());
+            document.addEventListener('click', (e) => this.handleRecipeClickOutside(e));
+        }
+    }
+
+    async handleIngredientInput() {
+        const query = this.nameInput.value.trim();
 
         if (query.length < 1) {
-            suggestionsList.classList.add('hiding');
-            setTimeout(() => {
-                suggestionsList.innerHTML = '';
-                suggestionsList.classList.remove('hiding');
-                suggestionsList.style.display = 'none';
-            }, 800);
+            this.hideSuggestions(this.suggestionsList);
             return;
         }
 
-        suggestionsList.style.display = 'block';
-        suggestionsList.classList.remove('hiding');
-
-        fetchWithSession(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-                suggestionsList.innerHTML = "";
-
-                data.forEach(suggestion => {
-                    const li = document.createElement("li");
-                    li.textContent = suggestion;
-                    li.addEventListener("click", () => {
-                        nameInput.value = suggestion;
-                        suggestionsList.innerHTML = "";
-                    });
-                    suggestionsList.appendChild(li);
-                });
-
-                if (data.length) {
-                    suggestionsList.style.display = "block";
-                } else {
-                    suggestionsList.style.display = "none";
-                }
-            })
-            .catch(err => {
-                console.error("Error fetching suggestions:", err);
-                suggestionsList.innerHTML = "";
-            });
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!recipeSearchInput.contains(e.target) && !recipeSuggestions.contains(e.target)) {
-            if (recipeSuggestions.innerHTML !== '') {
-                recipeSuggestions.classList.remove('showing');
-                recipeSuggestions.classList.add('hiding');
-                setTimeout(() => {
-                    recipeSuggestions.style.display = 'none';
-                    recipeSuggestions.classList.remove('hiding');
-                }, 800);
-            }
-        }
-    });
-}
-
-// Fetch and filter recipes as user types
-const recipeSearchInput = document.getElementById("recipeSearchInput");
-const recipeSuggestions = document.getElementById("recipeSuggestions");
-let recipeListCache = [];
-
-recipeSearchInput.addEventListener("input", function () {
-    const query = recipeSearchInput.value.trim().toLowerCase();
-    if (query.length < 3) {
-        recipeSuggestions.innerHTML = "";
-        return;
-    }
-
-    if (recipeListCache.length === 0) {
-        fetchWithSession(`${API_BASE}/listrecipes`)
-            .then(res => res.json())
-            .then(recipes => {
-                recipeListCache = recipes;
-                showRecipeSuggestions(query);
-            })
-            .catch(() => {
-                recipeSuggestions.innerHTML = "<li>Error loading recipes.</li>";
-            });
-    } else {
-        showRecipeSuggestions(query);
-    }
-});
-
-// Show suggestions in the dropdown
-function showRecipeSuggestions(query) {
-    recipeSuggestions.innerHTML = "";
-    const matches = recipeListCache.filter(r =>
-        r.name.toLowerCase().includes(query) ||
-        (r.description && r.description.toLowerCase().includes(query))
-    ).slice(0, 7);
-
-    if (matches.length === 0) {
-        recipeSuggestions.innerHTML = "<li>No recipes found.</li>";
-        return;
-    }
-
-    matches.forEach(recipe => {
-        const li = document.createElement("li");
-        li.innerHTML = recipe.description
-            ? `<abbr title="${recipe.description}">${recipe.name}</abbr>`
-            : recipe.name;
-
-        li.addEventListener("click", async () => {
-            recipeSearchInput.value = recipe.name;
-            recipeSuggestions.innerHTML = "";
-
-            try {
-                await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"});
-                const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(recipe.name)}`);
-                const recipeDetails = await response.json();
-
-                let hasError = false;
-                for (const ingredient of recipeDetails.ingredients) {
-                    try {
-                        const ingResponse = await fetchWithSession(`${API_BASE}/addingredient`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                name: ingredient.name,
-                                grams: ingredient.grams
-                            })
-                        });
-
-                        if (!ingResponse.ok) {
-                            showToast(`Failed to add: ${ingredient.name}`);
-                            hasError = true;
-                            continue;
-                        }
-                    } catch (err) {
-                        showToast(`Error adding: ${ingredient.name}`);
-                        hasError = true;
-                        continue;
-                    }
-                }
-
-                localStorage.setItem('currentRecipe', `📗 ${recipe.name}`);
-
-                if (!hasError) {
-                    window.location.href = "index.html";
-                } else {
-                    showToast('Some ingredients could not be added');
-                }
-            } catch (error) {
-                showToast('Failed to load recipe');
-            }
-        });
-        recipeSuggestions.appendChild(li);
-    });
-
-    recipeSuggestions.style.display = 'block';
-    recipeSuggestions.classList.remove('hiding');
-    recipeSuggestions.classList.add('showing');
-}
-
-function hideRecipeSuggestions() {
-    const suggestionsSection = document.getElementById("recipeSuggestionsSection");
-    hideSuggestions(suggestionsSection);
-}
-
-document.addEventListener('click', function(e) {
-    if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
-        if (suggestionsList.innerHTML !== '') {
-            suggestionsList.classList.add('hiding');
-            setTimeout(() => {
-                suggestionsList.innerHTML = '';
-                suggestionsList.classList.remove('hiding');
-                suggestionsList.style.display = 'none';
-            }, 800);
+        try {
+            const response = await fetchWithSession(`${API_BASE}/suggestions?query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            this.displayIngredientSuggestions(data);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+            this.suggestionsList.innerHTML = "";
         }
     }
-});
 
-//recipe suggestions
-document.getElementById("suggestRecipesBtn").addEventListener("click", function() {
-    const suggestionsSection = document.getElementById("recipeSuggestionsSection");
-    showSuggestions(suggestionsSection);
-
-    fetchWithSession(`${API_BASE}/suggestrecipes`)
-        .then(res => res.json())
-        .then(suggestions => {
-            const list = document.getElementById("recipeSuggestionsList");
-            list.innerHTML = "";
-
-            if (!Array.isArray(suggestions) || suggestions.length === 0) {
-                showToast("No matching recipes found");
-                list.innerHTML = '<li class="no-results">No recommendations found.</li>';
-                return;
-            }
-
-            showToast(`Found ${suggestions.length} matching recipes`);
-
-            suggestions.sort((a, b) => {
-                const percentA = (a.matches / a.total) * 100;
-                const percentB = (b.matches / b.total) * 100;
-                return percentB - percentA;
-            });
-
-            suggestions.forEach(s => {
-                const percent = Math.round((s.matches / s.total) * 100);
+    displayIngredientSuggestions(suggestions) {
+        this.suggestionsList.innerHTML = "";
+        
+        if (suggestions.length > 0) {
+            suggestions.forEach(suggestion => {
                 const li = document.createElement("li");
-
-                li.innerHTML = `
-            <div class="recipe-suggestion">
-                <div>
-                    ${s.description
-                    ? `<abbr title="${s.description}"><strong>${s.name}</strong></abbr>`
-                    : `<strong>${s.name}</strong>`}
-                    <div>
-                        <small>${percent}% match</small>
-                        <abbr title="Required ingredients: ${s.ingredients.map(i => `${i.name} (${i.grams}g)`).join(', ')}">
-                            <small>(${s.matches} of ${s.total} ingredients)</small>
-                        </abbr>
-                    </div>
-                </div>
-                <button class="use-recipe-btn">Use Recipe</button>
-            </div>
-        `;
-
-                li.querySelector('.use-recipe-btn').addEventListener('click', async () => {
-                    try {
-                        await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
-                        const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(s.name)}`);
-                        const recipeDetails = await response.json();
-
-                        for (const ingredient of recipeDetails.ingredients) {
-                            await fetchWithSession(`${API_BASE}/addingredient`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    name: ingredient.name,
-                                    grams: ingredient.grams
-                                })
-                            });
-                        }
-
-                        fetchIngredients();
-                        calculateTotal();
-                        suggestionsSection.style.display = "none";
-                    } catch (error) {
-                        showToast('Failed to load recipe');
-                    }
-                });
-
-                list.appendChild(li);
+                li.textContent = suggestion;
+                li.addEventListener("click", () => this.selectIngredient(suggestion));
+                this.suggestionsList.appendChild(li);
             });
-        })
-        .catch(() => {
-            const list = document.getElementById("recipeSuggestionsList");
-            list.innerHTML = "<li>Error loading recommendations.</li>";
-        });
-});
+            this.showSuggestions(this.suggestionsList);
+        } else {
+            this.hideSuggestions(this.suggestionsList);
+        }
+    }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const recipeSearchForm = document.getElementById('recipeSearchForm');
-    if (recipeSearchForm) {
-        recipeSearchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+    async handleRecipeInput() {
+        const query = this.recipeSearchInput.value.trim().toLowerCase();
+        
+        if (query.length < 3) {
+            this.hideSuggestions(this.recipeSuggestions);
+            return;
+        }
+
+        if (this.recipeListCache.length === 0) {
+            try {
+                const response = await fetchWithSession(`${API_BASE}/listrecipes`);
+                this.recipeListCache = await response.json();
+                this.showRecipeSuggestions(query);
+            } catch (error) {
+                this.recipeSuggestions.innerHTML = "<li>Error loading recipes.</li>";
+            }
+        } else {
+            this.showRecipeSuggestions(query);
+        }
+    }
+
+    showRecipeSuggestions(query) {
+        const matches = this.recipeListCache.filter(recipe => 
+            recipe.name.toLowerCase().includes(query)
+        );
+
+        this.recipeSuggestions.innerHTML = matches.length > 0 
+            ? matches.slice(0, 5).map(recipe => `
+                <li class="recipe-suggestion-item" data-recipe="${recipe.name}">
+                    <div class="recipe-suggestion">
+                        <div class="recipe-info">
+                            ${this.formatRecipeTitle(recipe)}
+                            ${this.formatRecipeDetails(recipe)}
+                        </div>
+                    </div>
+                </li>
+            `).join('')
+            : '<li>No matching recipes found.</li>';
+
+        this.showSuggestions(this.recipeSuggestions);
+        this.attachRecipeEventListeners();
+    }
+
+    formatRecipeTitle(recipe) {
+        return recipe.description 
+            ? `<abbr title="${recipe.description}"><strong>${recipe.name}</strong></abbr>`
+            : `<strong>${recipe.name}</strong>`;
+    }
+
+    formatRecipeDetails(recipe) {
+        return `<small>${recipe.ingredients.length} ingredients</small>`;
+    }
+
+    showSuggestions(element) {
+        element.style.display = 'block';
+        element.classList.remove('hiding');
+        element.classList.add('showing');
+    }
+
+    hideSuggestions(element) {
+        if (!element || !element.innerHTML) return;
+
+        element.classList.remove('showing');
+        element.classList.add('hiding');
+        setTimeout(() => {
+            if (element.classList.contains('hiding')) {
+                element.style.display = 'none';
+                element.classList.remove('hiding');
+            }
+        }, 300);
+    }
+
+    handleClickOutside(e) {
+        if (!this.nameInput.contains(e.target) && !this.suggestionsList.contains(e.target)) {
+            this.hideSuggestions(this.suggestionsList);
+        }
+    }
+
+    handleRecipeClickOutside(e) {
+        if (!this.recipeSearchInput.contains(e.target) && !this.recipeSuggestions.contains(e.target)) {
+            this.hideSuggestions(this.recipeSuggestions);
+        }
+    }
+
+    selectIngredient(suggestion) {
+        this.nameInput.value = suggestion;
+        this.hideSuggestions(this.suggestionsList);
+        document.getElementById("grams")?.focus();
+    }
+
+    attachRecipeEventListeners() {
+        this.recipeSuggestions.querySelectorAll('.recipe-suggestion-item').forEach(item => {
+            item.addEventListener('click', () => this.useRecipe(item.dataset.recipe));
         });
     }
-});
 
-// Animations for Suggestions List
-function showSuggestions(element) {
-    element.style.display = 'block';
-    element.classList.remove('hiding');
-    element.classList.add('showing');
-}
+    async useRecipe(recipeName) {
+        try {
+            await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
+            const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(recipeName)}`);
+            const recipe = await response.json();
 
-function hideSuggestions(element) {
-    if (!element || !element.innerHTML) return;
+            let addedCount = 0;
+            for (const ingredient of recipe.ingredients) {
+                try {
+                    const res = await fetchWithSession(`${API_BASE}/addingredient`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name: ingredient.name,
+                            grams: ingredient.grams
+                        })
+                    });
+                    if (res.ok) addedCount++;
+                } catch (err) {
+                    console.error('Error adding ingredient:', err);
+                }
+            }
 
-    element.classList.remove('showing');
-    element.classList.add('hiding');
-
-    setTimeout(() => {
-        if (element.classList.contains('hiding')) {
-            element.style.display = 'none';
-            element.classList.remove('hiding');
+            if (addedCount > 0) {
+                localStorage.setItem('currentRecipe', `📖 ${recipeName}`);
+                window.location.href = 'index.html';
+            } else {
+                showToast('No ingredients could be added');
+            }
+        } catch (error) {
+            console.error('Recipe loading error:', error);
+            showToast("Error loading recipe!");
         }
-    }, 800);
+    }
 }
 
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    new SuggestionsManager();
+});

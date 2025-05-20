@@ -7,10 +7,12 @@ package middleware
 
 import (
 	"context"
-	"github.com/rs/zerolog"
+	"encoding/json"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 func CORS() func(http.Handler) http.Handler {
@@ -22,13 +24,13 @@ func CORS() func(http.Handler) http.Handler {
 			if isDev || origin == "" || origin == "file://" || origin == "null" {
 				w.Header().Set("Access-Control-Allow-Origin", "*")
 			} else {
-				w.Header().Set("Access-Control-Allow-Origin", "https://foodstats-frontend.onrender.com")
+				w.Header().Set("Access-Control-Allow-Origin", origin)
 				w.Header().Set("Vary", "Origin")
 			}
 
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Session-ID")
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Max-Age", "3600")
 
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
@@ -100,6 +102,23 @@ func Timeout(timeout time.Duration) func(http.Handler) http.Handler {
 				http.Error(w, "Request Timeout", http.StatusGatewayTimeout)
 			}
 		})
+	}
+}
+
+func ValidateJSONRequest(next http.HandlerFunc, schema interface{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Body == nil {
+			http.Error(w, "Request body is empty", http.StatusBadRequest)
+			return
+		}
+
+		err := json.NewDecoder(r.Body).Decode(&schema)
+		if err != nil {
+			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	}
 }
 

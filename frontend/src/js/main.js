@@ -3,68 +3,235 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-document.getElementById("ingredientForm").addEventListener("submit", function(e) {
-    e.preventDefault();
+class IngredientManager {
+    constructor() {
+        this.form = document.getElementById("ingredientForm");
+        this.nameInput = document.getElementById("name");
+        this.gramsInput = document.getElementById("grams");
+        this.ingredientList = document.getElementById("ingredientList");
+        this.totalOutput = document.getElementById("totalOutput");
+        
+        this.calculateBtn = document.getElementById("calculateBtn");
+        this.resetBtn = document.getElementById("resetBtn");
+        this.exportBtn = document.getElementById("exportBtn");
+        this.importBtn = document.getElementById("importBtn");
+        this.importInput = document.getElementById("importInput");
 
-    const nameInput = document.getElementById("name");
-    const gramsInput = document.getElementById("grams");
-    const name = nameInput.value.trim().toLowerCase();
-    const grams = parseFloat(gramsInput.value);
-
-    nameInput.classList.remove('input-error');
-    gramsInput.classList.remove('input-error');
-
-    if (!name) {
-        nameInput.classList.add('input-error');
-        showToast("Please enter an ingredient name.");
-        return;
+        this.initializeEventListeners();
     }
 
-    if (isNaN(grams) || grams <= 0) {
-        gramsInput.classList.add('input-error');
-        showToast("Please enter a valid weight in grams.");
-        return;
+    initializeEventListeners() {
+        // Form submissions
+        this.form?.addEventListener("submit", (e) => this.handleAddIngredient(e));
+        
+        // Input validations
+        this.nameInput?.addEventListener("input", () => this.clearError(this.nameInput));
+        this.gramsInput?.addEventListener("input", () => this.clearError(this.gramsInput));
+        
+        // Button listeners
+        this.calculateBtn?.addEventListener('click', () => this.calculateTotal());
+        this.resetBtn?.addEventListener('click', () => this.resetIngredients());
+        this.exportBtn?.addEventListener('click', () => this.exportIngredients());
+        this.importBtn?.addEventListener('click', () => this.importInput?.click());
+        this.importInput?.addEventListener('change', (e) => this.importIngredients(e));
+        
+        // Keyboard shortcuts
+        this.setupKeyboardShortcuts();
     }
 
-    fetchWithSession(`${API_BASE}/addingredient`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, grams })
-    })
-        .then(res => {
-            if (!res.ok) {
-                if (res.status === 404) throw new Error("Unknown ingredient!");
-                showToast("Failed to add ingredient! Ingredient may have already been added!");
+    setupKeyboardShortcuts() {
+        document.addEventListener("keydown", (e) => {
+            if (e.ctrlKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'i': 
+                        e.preventDefault();
+                        this.nameInput.focus();
+                        break;
+                    case 'g':
+                        e.preventDefault();
+                        this.gramsInput.focus();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        this.resetIngredients();
+                        break;
+                    case 'a':
+                        e.preventDefault();
+                        this.calculateTotal();
+                        break;
+                }
             }
-            return res.json();
-        })
-        .then(data => {
-            fetchIngredients();
-            document.getElementById("name").value = "";
-            document.getElementById("grams").value = "";
-            nameInput.classList.remove('input-error');
-            gramsInput.classList.remove('input-error');
-        })
-        .catch(error => {
-            nameInput.classList.add('input-error');
-            showToast('Failed to add ingredient! Invalid ingredient!');
         });
-});
+    }
 
-document.getElementById("name").addEventListener("input", function() {
-    this.classList.remove('input-error');
-});
+    async exportIngredients() {
+        try {
+            const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+            const blob = new Blob([JSON.stringify(ingredients, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ingredients.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Ingredients exported successfully');
+        } catch (error) {
+            showToast('Failed to export ingredients');
+            console.error('Export error:', error);
+        }
+    }
 
-document.getElementById("grams").addEventListener("input", function() {
-    this.classList.remove('input-error');
-});
+    async importIngredients(e) {
+        const file = e.target.files[0];
+        if (!file) return;
 
-function fetchIngredients() {
-    fetchWithSession(`${API_BASE}/ingredients`)
-        .then(res => res.json())
-        .then(data => {
+        try {
+            const content = await file.text();
+            const ingredients = JSON.parse(content);
+
+            // First reset current ingredients
+            await fetchWithSession(`${API_BASE}/reset`, { method: 'DELETE' });
+
+            let addedCount = 0;
+            for (const ing of ingredients) {
+                try {
+                    const response = await fetchWithSession(`${API_BASE}/addingredient`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: ing.name,
+                            grams: ing.grams
+                        })
+                    });
+                    if (response.ok) addedCount++;
+                } catch (err) {
+                    console.error('Error adding ingredient:', err);
+                }
+            }
+
+            await this.fetchIngredients();
+            showToast(`Imported ${addedCount} ingredients`);
+            e.target.value = ''; // Reset file input
+        } catch (error) {
+            showToast('Failed to import ingredients');
+            console.error('Import error:', error);
+        }
+    }
+
+    async showAiSuggestions() {
+        const aiSection = document.getElementById('aiAnalysisSection');
+        const container = document.getElementById('aiSmartSuggestions');
+        
+        aiSection.style.display = 'block';
+        container.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div>Loading suggestions...</div>';
+
+        try {
+            const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+            const names = ingredients.map(i => i.name);
+            
+            const res = await fetchWithSession(`${API_BASE}/smartrecommendations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ingredients: names })
+            });
+            
+            const recommendations = await res.json();
+            
+            if (!recommendations.length) {
+                container.innerHTML = '<div>No smart suggestions found.</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="recipe-grid">
+                    ${recommendations.map(recipe => `
+                        <div class="recipe-card">
+                            <h4>${recipe.name}</h4>
+                            <p>${recipe.description || ''}</p>
+                            <div class="match-score">${
+                                recipe.similarity !== undefined 
+                                    ? Math.round(recipe.similarity * 100) + '% match'
+                                    : ''
+                            }</div>
+                            <button onclick="useRecipe('${recipe.name.replace(/'/g, "\\'")}')">Use Recipe</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (err) {
+            container.innerHTML = '<div>Error loading smart suggestions.</div>';
+            showToast('Failed to load AI suggestions');
+        }
+    }
+
+    async handleAddIngredient(e) {
+        e.preventDefault();
+        
+        const name = this.nameInput.value.trim().toLowerCase();
+        const grams = parseFloat(this.gramsInput.value);
+
+        if (!this.validateInputs(name, grams)) return;
+
+        try {
+            const response = await this.addIngredient(name, grams);
+            if (response.ok) {
+                this.clearInputs();
+                await this.fetchIngredients();
+            } else {
+                throw new Error(response.status === 404 ? "Unknown ingredient!" : "Ingredient already added!");
+            }
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    validateInputs(name, grams) {
+        this.clearErrors();
+
+        if (!name) {
+            this.showError(this.nameInput, "Please enter an ingredient name.");
+            return false;
+        }
+
+        if (isNaN(grams) || grams <= 0) {
+            this.showError(this.gramsInput, "Please enter a valid weight in grams.");
+            return false;
+        }
+
+        return true;
+    }
+
+    async addIngredient(name, grams) {
+        return await fetchWithSession(`${API_BASE}/addingredient`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, grams })
+        });
+    }
+
+    async fetchIngredients() {
+        console.log(localStorage.getItem('currentRecipe'));
+        try {
+            const response = await fetchWithSession(`${API_BASE}/ingredients`);
+            const data = await response.json();
+            
             const list = document.getElementById("ingredientList");
             list.innerHTML = "";
+
+            const savedRecipe = localStorage.getItem('currentRecipe');
+            this.updateRecipeSource(savedRecipe || '');
+
+            if (!data || data.length === 0) {
+                const emptyMessage = document.createElement("li");
+                emptyMessage.className = "empty-message";
+                emptyMessage.textContent = "No ingredients added yet";
+                list.appendChild(emptyMessage);
+                document.getElementById("totalOutput").textContent = "Click \"Calculate\" to see total nutrition.";
+                return;
+            }
+
             data.forEach(ing => {
                 const item = document.createElement("li");
                 item.setAttribute('data-name', ing.name);
@@ -78,243 +245,191 @@ function fetchIngredients() {
                 const deleteBtn = document.createElement("button");
                 deleteBtn.textContent = "🗑️";
                 deleteBtn.style.marginLeft = "10px";
-                deleteBtn.onclick = () => deleteIngredient(ing.name);
+                deleteBtn.onclick = () => this.deleteIngredient(ing.name);
 
                 item.appendChild(deleteBtn);
                 list.appendChild(item);
             });
-        });
-}
+        } catch (error) {
+            console.error('Error fetching ingredients:', error);
+            showToast('Failed to load ingredients');
+        }
+    }
 
-function updateRecipeSource(source) {
-    const sourceElement = document.getElementById('recipeSource');
-    sourceElement.textContent = source ? ` - ${source}` : '';
-}
+    updateRecipeSource(source) {
+        const sourceElement = document.getElementById('recipeSource');
+        if (sourceElement) {
+            sourceElement.innerHTML = source ? ` - <span style="color: #2b6777">${source}</span>` : '';
+        }
+    }
 
-function deleteIngredient(name) {
-    const item = document.querySelector(`#ingredientList li[data-name="${name}"]`);
-    item.classList.add('removing');
+    async deleteIngredient(name) {
+        const item = document.querySelector(`#ingredientList li[data-name="${name}"]`);
+        item.classList.add('removing');
 
-    setTimeout(() => {
-        fetchWithSession(`${API_BASE}/deleteingredient?name=${encodeURIComponent(name)}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to delete ingredient');
+        setTimeout(async () => {
+        try {
+            const response = await fetchWithSession(`${API_BASE}/deleteingredient?name=${encodeURIComponent(name)}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('Failed to delete ingredient');
+            await this.fetchIngredients();
+
+            // Only clear recipe source if ingredient list is now empty
+            const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+            if (!ingredients || ingredients.length === 0) {
+                this.updateRecipeSource('');
+                localStorage.setItem('currentRecipe', '');
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data);
-            fetchIngredients();
-            updateRecipeSource('')
-            localStorage.removeItem('currentRecipe');
             showToast(`Removed ${name}`);
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Delete error:', error);
             showToast('Failed to delete ingredient');
             item.classList.remove('removing');
-        });
+        }
     }, 300);
-}
+    }
 
-function calculateTotal() {
-    const btn = document.querySelector('button[onclick="calculateTotal()"]');
-    const originalText = btn.textContent;
+    async calculateTotal() {
+        const btn = this.calculateBtn;
+        if (!btn) return;
+        const originalText = btn.textContent;
 
-    const spinner = document.createElement('div');
-    spinner.className = 'loading';
-    btn.textContent = '';
-    btn.appendChild(spinner);
-    btn.disabled = true;
+        const spinner = document.createElement('div');
+        spinner.className = 'loading';
+        btn.textContent = 'Calculating...';
+        btn.appendChild(spinner);
+        btn.disabled = true;
 
-    fetchWithSession(`${API_BASE}/calculate`)
-        .then(res => res.json())
-        .then(data => {
-            const output = `
-${data.name} (${data.grams}g):
-- ${data.calories.toFixed(1)} kcal
-- ${data.proteins.toFixed(1)}g protein
-- ${data.carbs.toFixed(1)}g carbs
-- ${data.fats.toFixed(1)}g fat
-- ${data.fiber.toFixed(1)}g fiber
-            `.trim();
+        try {
+            const res = await fetchWithSession(`${API_BASE}/calculate`);
+            const data = await res.json();
 
-            document.getElementById("totalOutput").textContent = output;
-        })
-        .finally(() => {
-            btn.removeChild(spinner);
-            btn.textContent = 'Calculate';
+            let html = `
+                <strong>Calories:</strong> ${data.calories.toFixed(1)} kcal<br>
+                <strong>Proteins:</strong> ${data.proteins.toFixed(1)}g<br>
+                <strong>Carbs:</strong> ${data.carbs.toFixed(1)}g<br>
+                <strong>Fats:</strong> ${data.fats.toFixed(1)}g<br>
+                <strong>Fiber:</strong> ${data.fiber.toFixed(1)}g<br>
+            `;
+
+            const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+            const aiRes = await fetchWithSession(`${API_BASE}/analyzenutrition`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ingredients)
+            });
+            const analysis = await aiRes.json();
+
+            html += `
+                <hr>
+                <div style="margin-top:10px;">
+                    <strong>AI Health Score:</strong>
+                    <span style="display:inline-block; width:40px; height:40px; border-radius:50%; background:#2b6777; color:white; line-height:40px; text-align:center; font-weight:bold;">
+                        ${Math.round(analysis.health_score)}
+                    </span>
+                    <br>
+                    <strong>AI Recommendations:</strong>
+                    <ul style="margin:8px 0 0 20px; text-align:left;">
+                        ${analysis.recommendations.map(r => `<li>${r}</li>`).join('')}
+                    </ul>
+                    <strong>Nutrient Balance:</strong>
+                    <ul style="margin:8px 0 0 20px; text-align:left;">
+                        ${Object.entries(analysis.nutrient_balance).map(([k, v]) => `<li>${k}: ${(v*100).toFixed(1)}%</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+
+            this.totalOutput.innerHTML = html;
+        } catch (err) {
+            console.error('Calculate error:', err);
+            this.totalOutput.textContent = "Error calculating total";
+            showToast("Failed to calculate total");
+        } finally {
+            if (spinner && spinner.parentNode === btn) {
+                btn.removeChild(spinner);
+            }
+            btn.textContent = originalText;
             btn.disabled = false;
-        })
-        .catch(err => {
-            document.getElementById("totalOutput").textContent = "Error calculating total: " + err.message;
-        });
+        }
+    }
 
-    showToast("Nutrition calculated");
-}
+    async resetIngredients() {
+    const list = this.ingredientList;
+    if (!list) return;
 
-function resetIngredients() {
-    const list = document.getElementById("ingredientList");
     list.classList.add('reset-animation');
 
-    setTimeout(() => {
-        fetchWithSession(`${API_BASE}/reset`, { method: "DELETE"})
-        .then(() => {
-            fetchIngredients()
-            updateRecipeSource('');
-            showToast("All ingredients cleared");
-            localStorage.removeItem('currentRecipe');
-            document.getElementById("recipeSearchInput").value = "";
-            document.getElementById("recipeSuggestionsSection").style.display = "none";
-            document.getElementById("recipeSuggestionsList").innerHTML = "";
-            document.getElementById("recipeSuggestions").innerHTML = "";
-            document.getElementById("totalOutput").innerHTML=`Click "Calculate" to see total nutrition.`;
-        })
-        .catch(() => {
-            showToast('Failed to clear list');
+    try {
+        const response = await fetchWithSession(`${API_BASE}/reset`, { 
+            method: "DELETE"
         });
-    }, 250);
+
+        if (!response.ok) {
+            throw new Error('Reset failed');
+        }
+
+        await this.fetchIngredients();
+        this.updateRecipeSource('');
+        showToast("All ingredients cleared");
+        localStorage.setItem('currentRecipe', '');
+        
+        // Reset UI elements
+        const recipeSearchInput = document.getElementById("recipeSearchInput");
+        if (recipeSearchInput) recipeSearchInput.value = "";
+        
+        const suggestionsSection = document.getElementById("recipeSuggestionsSection");
+        if (suggestionsSection) suggestionsSection.style.display = "none";
+        
+        if (this.totalOutput) {
+            this.totalOutput.innerHTML = "Click \"Calculate\" to see total nutrition.";
+        }
+
+        // Hide AI section if visible
+        const aiSection = document.getElementById('aiAnalysisSection');
+        if (aiSection && aiSection.style.display === 'block') {
+            aiSection.classList.add('hiding');
+            setTimeout(() => {
+                aiSection.style.display = 'none';
+                aiSection.classList.remove('hiding');
+            }, 300);
+        }
+
+    } catch (error) {
+        console.error('Reset error:', error);
+        showToast('Failed to clear list');
+    } finally {
+        list.classList.remove('reset-animation');
+    }
+}
+
+    showError(input, message) {
+        input.classList.add('input-error');
+        showToast(message);
+    }
+
+    clearError(input) {
+        input.classList.remove('input-error');
+    }
+
+    clearErrors() {
+        this.clearError(this.nameInput);
+        this.clearError(this.gramsInput);
+    }
+
+    clearInputs() {
+        this.nameInput.value = "";
+        this.gramsInput.value = "";
+        this.clearErrors();
+    }
+
+    handleError(error) {
+        this.showError(this.nameInput, error.message || 'Failed to add ingredient!');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const savedRecipe = localStorage.getItem('currentRecipe');
-    if (savedRecipe) {
-        updateRecipeSource(savedRecipe);
-    }
+    const manager = new IngredientManager();
+    manager.fetchIngredients();
 });
 
-// Enter - submit
-document.getElementById("ingredientForm").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        if (e.target.tagName === "INPUT") {
-            e.preventDefault();
-            this.requestSubmit();
-        }
-    }
-});
-
-// Ctrl+I - Ingredient
-document.addEventListener("keydown", function(e) {
-    if (e.ctrlKey && e.key.toLowerCase() === "i") {
-        e.preventDefault();
-        document.getElementById("name").focus();
-    }
-});
-
-// Ctrl+G - Grams
-document.addEventListener("keydown", function(e) {
-    if (e.ctrlKey && e.key.toLowerCase() === "g") {
-        e.preventDefault();
-        document.getElementById("grams").focus();
-    }
-});
-
-// Ctrl + T - Reset, Ctrl + A - calculate
-document.addEventListener("keydown", function(e) {
-    if (e.ctrlKey && e.key === 'e') {
-        e.preventDefault();
-        resetIngredients();
-    } else if (e.ctrlKey && e.key === 'a') {
-        e.preventDefault();
-        calculateTotal();
-    }
-});
-
-// Ctrl + U - Export Recipe. Ctrl + O - Import Recipe
-document.addEventListener("keydown", function(e) {
-    if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-        document.getElementById('exportBtn').click();
-    } else if (e.ctrlKey && e.key === 'o') {
-        e.preventDefault();
-        document.getElementById('importBtn').click();
-    }
-});
-
-// Ctrl + S - Search Recipes, Ctrl + H - Go Home
-document.addEventListener("keydown", function(e) {
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        document.getElementById('recipeSearchInput').focus();
-    } else if (e.ctrlKey && e.key === 'h') {
-        e.preventDefault();
-        window.location.href = 'index.html';
-    }
-});
-
-// Import/Export Recipes
-document.getElementById('exportBtn').addEventListener('click', async () => {
-    try {
-        const response = await fetchWithSession(`${API_BASE}/ingredients`);
-        const ingredients = await response.json();
-
-        if (ingredients.length === 0) {
-            showToast("No ingredients to export");
-            return;
-        }
-
-        const exportData = ingredients.map(ing => ({
-            name: ing.name,
-            grams: ing.grams
-        }));
-
-        const blob = new Blob([JSON.stringify(exportData, null, 2)],
-            {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ingredients_${new Date().toLocaleDateString()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast("Recipe exported successfully");
-    } catch (error) {
-        showToast('Failed to export ingredients');
-    }
-});
-
-document.getElementById('importBtn').addEventListener('click', () => {
-    document.getElementById('importInput').click();
-});
-
-document.getElementById('importInput').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-        const text = await file.text();
-        const ingredients = JSON.parse(text);
-
-        if (!Array.isArray(ingredients)) {
-            showToast('Invalid format');
-            return
-        }
-
-        await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
-
-        for (const ing of ingredients) {
-            await fetchWithSession(`${API_BASE}/addingredient`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: ing.name,
-                    grams: ing.grams
-                })
-            });
-        }
-
-        const filename = file.name.replace(/\.[^/.]+$/, "");
-        updateRecipeSource(`📄 ${filename}`);
-
-        fetchIngredients();
-        calculateTotal();
-        e.target.value = '';
-        showToast(`Imported ingredients from ${file.name}`);
-    } catch (error) {
-        showToast('Failed to import ingredients');
-    }
-});
-
-fetchIngredients();

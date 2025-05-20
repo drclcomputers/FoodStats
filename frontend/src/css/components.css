@@ -54,3 +54,26 @@ button:hover,
     margin-top: 10px;
     align-content: center;
 }
+
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.toast {
+    background: #333;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    animation: toastIn 0.3s ease;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+

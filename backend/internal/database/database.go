@@ -9,10 +9,11 @@ import (
 	"FoodStats/internal/config"
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var DB *sql.DB
@@ -31,7 +32,7 @@ func monitorDBStats(logger *log.Logger) {
 	}
 }
 
-func InitDB() {
+func InitDB() error {
 	var err error
 	logger := log.New(os.Stdout, "[DB] ", log.LstdFlags|log.Lshortfile)
 
@@ -56,19 +57,32 @@ func InitDB() {
 	DB, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
 		logger.Fatal("DB connect error:", err)
+		return err
 	}
 
 	DB.SetMaxOpenConns(25)
-	DB.SetMaxIdleConns(5)
+	DB.SetMaxIdleConns(10)
 	DB.SetConnMaxLifetime(5 * time.Minute)
+	DB.SetConnMaxIdleTime(2 * time.Minute)
 
-	if err := DB.Ping(); err != nil {
-		logger.Fatal("DB ping failed:", err)
+	for attempts := 1; attempts <= 4; attempts++ {
+		err = DB.Ping()
+		if err == nil {
+			break
+		}
+		logger.Printf("DB connection attempt %d failed: %v", attempts, err)
+		time.Sleep(time.Second * 2)
+	}
+
+	if err != nil {
+		logger.Fatal("Failed to connect to database after 4 attempts:", err)
+		return err
 	}
 
 	go monitorDBStats(logger)
 
 	logger.Printf("Database connected successfully at: %s", dbPath)
+	return nil
 }
 
 func CloseDB() {
@@ -119,10 +133,16 @@ func GetAllIngredients() []config.Ingredient {
 
 	var list []config.Ingredient
 	for rows.Next() {
-		var ing config.Ingredient
-		if err := rows.Scan(&ing.Name); err == nil {
-			list = append(list, ing)
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			log.Printf("Error scanning ingredient: %v", err)
+			continue
 		}
+		list = append(list, config.Ingredient{
+			TemplateIngredient: config.TemplateIngredient{
+				Name: name,
+			},
+		})
 	}
 	return list
 }
@@ -144,36 +164,61 @@ func GetRecipe(name string) (config.Recipe, error) {
 	for rows.Next() {
 		var data config.TemplateIngredient
 		if err := rows.Scan(&data.Name, &data.Grams); err == nil {
-			recipe.Ingredients = append(recipe.Ingredients, data)
+			recipe.Ingredients = append(recipe.Ingredients, config.Ingredient{
+				TemplateIngredient: data,
+			})
 		}
 	}
 	return recipe, nil
 }
 
 func AddRecipe(name, description string, ingredients []config.TemplateIngredient) error {
+	if !validateIngredientName(name) {
+		return fmt.Errorf("invalid recipe name")
+	}
+
+	sanitizedDesc := sanitizeDescription(description)
+	if len(sanitizedDesc) > 500 {
+		return fmt.Errorf("description too long")
+	}
+
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	res, err := tx.Exec("INSERT INTO recipes (name, description) VALUES (?, ?)", name, description)
-	if err != nil {
-		return err
-	}
-	recipeID, err := res.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	stmt, err := tx.Prepare("INSERT INTO recipe_ingredients (recipe_id, ingredient_name, grams) VALUES (?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO recipes (name, description) VALUES (?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
+	res, err := stmt.Exec(name, sanitizedDesc)
+	if err != nil {
+		return err
+	}
+
+	recipeID, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	ingredientStmt, err := tx.Prepare("INSERT INTO recipe_ingredients (recipe_id, ingredient_name, grams) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer ingredientStmt.Close()
+
 	for _, ing := range ingredients {
-		_, err := stmt.Exec(recipeID, ing.Name, ing.Grams)
+		if !validateIngredientName(ing.Name) {
+			return fmt.Errorf("invalid ingredient name: %s", ing.Name)
+		}
+		if !validateGrams(ing.Grams) {
+			return fmt.Errorf("invalid grams amount for %s", ing.Name)
+		}
+
+		_, err := ingredientStmt.Exec(recipeID, ing.Name, ing.Grams)
 		if err != nil {
 			return err
 		}
@@ -205,7 +250,13 @@ func ListRecipes() ([]config.Recipe, error) {
 			log.Printf("Error getting ingredients for recipe %s: %v", r.Name, err)
 			continue
 		}
-		r.Ingredients = ingredients
+		var converted []config.Ingredient
+		for _, ing := range ingredients {
+			converted = append(converted, config.Ingredient{
+				TemplateIngredient: ing,
+			})
+		}
+		r.Ingredients = converted
 		recipes = append(recipes, r)
 	}
 	return recipes, nil

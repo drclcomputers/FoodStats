@@ -6,25 +6,20 @@
 package api
 
 import (
+	handler "FoodStats/internal/api/handlers"
 	"FoodStats/internal/api/middleware"
 	"FoodStats/internal/config"
 	"FoodStats/internal/database"
+	"context"
 	"encoding/json"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/rs/zerolog"
-	"log"
 	"net/http"
 	"os"
-	"sort"
-	"strings"
-	"sync"
+	"os/signal"
+	"runtime"
 	"time"
-)
 
-var (
-	userIngredients = make(map[string][]config.Ingredient)
-	mu              sync.Mutex
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog"
 )
 
 func NewRouter(logger zerolog.Logger) *mux.Router {
@@ -33,6 +28,8 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(middleware.Logger(logger))
 	r.Use(middleware.Recoverer(logger))
+	r.Use(middleware.SecurityHeaders())
+	r.Use(middleware.RateLimit())
 	r.Use(middleware.CORS())
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -44,413 +41,92 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 		http.NotFound(w, r)
 	}).Methods(http.MethodGet)
 
-	r.HandleFunc("/api/health", healthCheckHandler)
-	r.HandleFunc("/api/addingredient", addIngredientHandler)
-	r.HandleFunc("/api/calculate", calculateHandler)
-	r.HandleFunc("/api/reset", resetHandler)
-	r.HandleFunc("/api/ingredients", listIngredientsHandler)
-	r.HandleFunc("/api/deleteingredient", deleteIngredientHandler)
-	r.HandleFunc("/api/suggestions", suggestionHandler)
-	r.HandleFunc("/api/listrecipes", listRecipesHandler)
-	r.HandleFunc("/api/getrecipe", getRecipeHandler)
-	r.HandleFunc("/api/addrecipe", addRecipeHandler)
-	r.HandleFunc("/api/suggestrecipes", suggestRecipesHandler)
+	r.HandleFunc("/api/health", HealthCheckHandler)
+	r.HandleFunc("/api/addingredient", handler.AddIngredientHandler)
+	r.HandleFunc("/api/calculate", handler.CalculateHandler)
+	r.HandleFunc("/api/reset", handler.ResetHandler)
+	r.HandleFunc("/api/ingredients", handler.ListIngredientsHandler)
+	r.HandleFunc("/api/deleteingredient", handler.DeleteIngredientHandler)
+	r.HandleFunc("/api/suggestions", handler.SuggestionHandler)
+	r.HandleFunc("/api/listrecipes", handler.ListRecipesHandler)
+	r.HandleFunc("/api/getrecipe", handler.GetRecipeHandler)
+	r.HandleFunc("/api/addrecipe", handler.AddRecipeHandler)
+	r.HandleFunc("/api/suggestrecipes", handler.SuggestRecipesHandler)
+	r.HandleFunc("/api/analyzenutrition", handler.AnalyzeNutritionHandler)
+	r.HandleFunc("/api/smartrecommendations", handler.SmartRecommendationsHandler)
 
 	return r
 }
 
-func isDev() bool {
-	return os.Getenv("GO_ENV") != "production"
-}
-
-func getSessionID(w http.ResponseWriter, r *http.Request) string {
-	if sid := r.Header.Get("X-Session-ID"); sid != "" {
-		return sid
-	}
-
-	if sid := r.URL.Query().Get("session_id"); sid != "" {
-		return sid
-	}
-
-	if cookie, err := r.Cookie("session_id"); err == nil && cookie.Value != "" {
-		return cookie.Value
-	}
-
-	sessionID := uuid.New().String()
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    sessionID,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   !isDev(),
-	})
-	return sessionID
-}
-
 func InitServer() {
-	database.InitDB()
-	defer database.CloseDB()
-
-	/*
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/" {
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
-				return
-			}
-			http.NotFound(w, r)
-		})
-
-		http.HandleFunc("/api/add-ingredient", addIngredientHandler)
-		http.HandleFunc("/api/calculate", calculateHandler)
-		http.HandleFunc("/api/reset", resetHandler)
-		http.HandleFunc("/api/ingredients", listIngredientsHandler)
-		http.HandleFunc("/api/delete-ingredient", deleteIngredientHandler)
-		http.HandleFunc("/api/suggestions", suggestionHandler)
-		http.HandleFunc("/api/list-recipes", listRecipesHandler)
-		http.HandleFunc("/api/get-recipe", getRecipeHandler)
-		http.HandleFunc("/api/add-recipe", addRecipeHandler)
-		http.HandleFunc("/api/suggest-recipes", suggestRecipesHandler)
-	*/
-
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	maxRetries := 3
+	for i := 0; i < maxRetries; i++ {
+		if err := database.InitDB(); err == nil {
+			break
+		}
+		if i == maxRetries-1 {
+			logger.Fatal().Msg("Failed to initialize database")
+		}
+		time.Sleep(time.Second * 2)
+	}
+	defer database.CloseDB()
 
 	r := NewRouter(logger)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	config.CleanupSessions()
+
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         ":" + config.GetPort(),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
-	log.Printf("Server starting on port: %s", port)
-	log.Printf("Running in %s mode", map[bool]string{true: "development", false: "production"}[isDev()])
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
 
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatal(err)
-	}
-}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-func addIngredientHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionID := getSessionID(w, r)
-
-	var input config.TemplateIngredient
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil || input.Grams <= 0 || input.Name == "" {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
-	input.Name = strings.TrimSpace(input.Name)
-	input.Name = strings.ToLower(input.Name)
-	if input.Grams <= 0 || input.Name == "" {
-		http.Error(w, "Invalid input values", http.StatusBadRequest)
-		return
-	}
-
-	ingredient, err := database.ReturnIngredient(input)
-	if err != nil {
-		http.Error(w, "Unknown ingredient", http.StatusNotFound)
-		return
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-	for _, ing := range userIngredients[sessionID] {
-		if ing.Name == ingredient.Name {
-			http.Error(w, "Ingredient already added", http.StatusConflict)
-			return
+		if err := srv.Shutdown(ctx); err != nil {
+			logger.Error().Err(err).Msg("Server shutdown error")
 		}
+	}()
+
+	logger.Info().Msgf("Server starting on port %s", config.GetPort())
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		logger.Fatal().Err(err).Msg("Server error")
 	}
-	userIngredients[sessionID] = append(userIngredients[sessionID], ingredient)
-
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(ingredient)
-
-	//fmt.Printf("SessionID: %s, Ingredients: %+v\n", sessionID, userIngredients[sessionID])
 }
 
-func listIngredientsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	status := map[string]interface{}{
+		"status":    "ok",
+		"timestamp": time.Now().UTC(),
+		"version":   "3.0.0",
+		"services":  make(map[string]string),
 	}
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionID := getSessionID(w, r)
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	list := userIngredients[sessionID]
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].Name < list[j].Name
-	})
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(list)
-
-}
-
-func calculateHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	sessionID := getSessionID(w, r)
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	var total config.Ingredient
-	total.Name = "Your recipe"
-	for _, ing := range userIngredients[sessionID] {
-		total.Grams += ing.Grams
-		total.Calories += ing.Calories
-		total.Proteins += ing.Proteins
-		total.Carbs += ing.Carbs
-		total.Fats += ing.Fats
-		total.Fiber += ing.Fiber
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(total)
-}
-
-func deleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		http.Error(w, "Missing ingredient name", http.StatusBadRequest)
-		return
-	}
-
-	sessionID := getSessionID(w, r)
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	name = strings.ToLower(r.URL.Query().Get("name"))
-	newList := make([]config.Ingredient, 0)
-	for _, ing := range userIngredients[sessionID] {
-		if strings.ToLower(ing.Name) != name {
-			newList = append(newList, ing)
-		}
-	}
-	userIngredients[sessionID] = newList
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message":"Ingredient deleted."}`))
-}
-
-func resetHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	if r.Method != http.MethodDelete {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionID := getSessionID(w, r)
-
-	mu.Lock()
-	userIngredients[sessionID] = nil
-	mu.Unlock()
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message":"Ingredient list reset."}`))
-}
-
-func suggestionHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	query := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("query")))
-	if query == "" {
-		http.Error(w, "Missing query parameter", http.StatusBadRequest)
-		return
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	var suggestions []string
-	for _, ing := range database.GetAllIngredients() {
-		if strings.HasPrefix(strings.ToLower(ing.Name), query) {
-			suggestions = append(suggestions, ing.Name)
-		}
-	}
-
-	sort.Strings(suggestions)
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(suggestions)
-}
-
-func listRecipesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	recipes, err := database.ListRecipes()
-	if err != nil {
-		http.Error(w, "Failed to fetch recipes", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(recipes)
-}
-
-func getRecipeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		http.Error(w, "Missing recipe name", http.StatusBadRequest)
-		return
-	}
-
-	recipe, err := database.GetRecipe(name)
-	if err != nil {
-		http.Error(w, "Recipe not found", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(recipe)
-}
-
-func addRecipeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var input config.Recipe
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
-	if input.Name == "" || len(input.Ingredients) == 0 {
-		http.Error(w, "Missing recipe name or ingredients", http.StatusBadRequest)
-		return
-	}
-
-	err := database.AddRecipe(input.Name, input.Description, input.Ingredients)
-	if err != nil {
-		http.Error(w, "Failed to add recipe: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Recipe added"})
-}
-
-func suggestRecipesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionID := getSessionID(w, r)
-
-	mu.Lock()
-	userIngs := make(map[string]bool)
-	for _, ing := range userIngredients[sessionID] {
-		userIngs[strings.ToLower(ing.Name)] = true
-	}
-	mu.Unlock()
-
-	recipes, err := database.ListRecipes()
-	if err != nil {
-		http.Error(w, "Failed to fetch recipes", http.StatusInternalServerError)
-		return
-	}
-
-	type suggestion struct {
-		config.Recipe
-		Matches int `json:"matches"`
-		Total   int `json:"total"`
-	}
-	var suggestions []suggestion
-
-	for _, recipe := range recipes {
-		matchCount := 0
-		for _, ing := range recipe.Ingredients {
-			if userIngs[strings.ToLower(ing.Name)] {
-				matchCount++
-			}
-		}
-		if matchCount > 0 {
-			suggestions = append(suggestions, suggestion{
-				Recipe:  recipe,
-				Matches: matchCount,
-				Total:   len(recipe.Ingredients),
-			})
-		}
-	}
-	sort.Slice(suggestions, func(i, j int) bool {
-		return suggestions[i].Matches > suggestions[j].Matches
-	})
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(suggestions)
-}
-
-func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	dbStatus := "ok"
 	if err := database.DB.Ping(); err != nil {
-		dbStatus = "error"
-		log.Printf("Database health check failed: %v", err)
+		status["services"].(map[string]string)["database"] = "error"
+		status["status"] = "degraded"
+	} else {
+		status["services"].(map[string]string)["database"] = "ok"
 	}
 
-	response := map[string]string{
-		"status":  "ok",
-		"db":      dbStatus,
-		"time":    time.Now().Format(time.RFC3339),
-		"version": "2.2.0",
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	status["memory"] = map[string]uint64{
+		"alloc":      m.Alloc,
+		"sys":        m.Sys,
+		"goroutines": uint64(runtime.NumGoroutine()),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("Error encoding health check response: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	json.NewEncoder(w).Encode(status)
 }

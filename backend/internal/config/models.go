@@ -24,8 +24,15 @@ type Ingredient struct {
 }
 
 type Recipe struct {
-	ID          int                  `json:"id"`
-	Name        string               `json:"name"`
-	Description string               `json:"description"`
-	Ingredients []TemplateIngredient `json:"ingredients"`
+	ID          int          `json:"id,omitempty"`
+	Name        string       `json:"name"`
+	Description string       `json:"description,omitempty"`
+	Ingredients []Ingredient `json:"ingredients,omitempty"`
+	Similarity  float64      `json:"similarity,omitempty"`
+}
+
+type NutritionAnalysis struct {
+	HealthScore     float64            `json:"health_score"`
+	Recommendations []string           `json:"recommendations"`
+	NutrientBalance map[string]float64 `json:"nutrient_balance"`
 }

@@ -3,10 +3,14 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
+const os = require('os');
 const { app, BrowserWindow, dialog, ipcMain, nativeTheme } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+
+const sessionFile = path.join(os.tmpdir(), '.foodstats_session');
+
 let mainWindow;
 let backendProcess;
 let serverReady = false;
@@ -53,6 +57,10 @@ function waitForServer(callback) {
 }
 
 function createWindow() {
+    if (!fs.existsSync(sessionFile)) {
+        fs.writeFileSync(sessionFile, 'active', { flag: 'w' });
+    }
+
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -66,6 +74,23 @@ function createWindow() {
 
     mainWindow.loadFile(path.join(__dirname, 'frontend/index.html'));
 
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.executeJavaScript(`
+            (function() {
+                try {
+                    const fs = require('fs');
+                    const os = require('os');
+                    const path = require('path');
+                    const sessionFile = path.join(os.tmpdir(), '.foodstats_session');
+                    if (fs.existsSync(sessionFile)) {
+                        localStorage.removeItem('currentRecipe');
+                        try { fs.unlinkSync(sessionFile); } catch {}
+                    }
+                } catch (e) { /* ignore */ }
+            })();
+        `);
+});
+
     waitForServer(() => {
         if (mainWindow) {
             mainWindow.show();
@@ -78,6 +103,10 @@ function createWindow() {
             'Failed to load the application interface.'
         );
     });
+
+    if (!fs.existsSync(sessionFile)) {
+        fs.writeFileSync(sessionFile, 'active', { flag: 'w' });
+    }
 }
 
 function startBackend() {
@@ -100,7 +129,6 @@ function startBackend() {
         const dbSource = path.join(process.resourcesPath, 'database', 'nutrition_data.db');
         const dbDest = path.join(backendDir, 'database', 'nutrition_data.db');
 
-        // Ensure directory exists
         fs.mkdirSync(path.join(backendDir, 'database'), { recursive: true });
 
         try {
@@ -167,6 +195,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+    try { fs.unlinkSync(sessionFile); } catch {}
     app.isQuitting = true;
     if (backendProcess) {
         backendProcess.kill();

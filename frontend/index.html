@@ -11,11 +11,6 @@
     <meta charset="UTF-8">
     <title>FoodStats</title>
     <link href="src/css/mystyle.css" rel="stylesheet">
-    <link href="src/css/components.css" rel="stylesheet">
-    <link href="src/css/scrollbar.css" rel="stylesheet">
-    <link href="src/css/mobile.css" rel="stylesheet">
-    <link href="src/css/darkmodestyle.css" rel="stylesheet">
-    <link href="src/css/animations.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="src/favicon.ico">
 </head>
 <body>
@@ -25,8 +20,8 @@
         <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
         <li><a href="healthy-recipes.html" class="nav-item">Healthy Recipes</a></li>
         <li><form id="recipeSearchForm">
-            <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
-            <ul id="recipeSuggestions" class="suggestions-list" style="position:absolute; left:0; top:100%; width:100%;"></ul>
+            <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off">
+            <ul id="recipeSuggestions" class="suggestions-list"></ul>
         </form></li>
     </ul>
 </nav>
@@ -46,21 +41,22 @@
 <ul id="ingredientList"></ul>
 
 <div class="actions">
-    <button onclick="resetIngredients()">Reset</button>
-    <button onclick="calculateTotal()">Calculate</button>
-    <button id="suggestRecipesBtn" type="button">Suggest Recipes</button>
+    <button id="resetBtn">Reset</button>
+    <button id="calculateBtn">Calculate</button>
+    <button id="getSmartSuggestionsBtn" type="button">AI Smart Suggestions</button>
 </div>
 
-<div id="recipeSuggestionsSection" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="margin: 0;">Recipe Suggestions</h2>
-        <button class="hide-suggestions-btn" onclick="hideRecipeSuggestions()">✕ Hide</button>
+<div id="aiAnalysisSection" style="display: none;">
+    <div class="ai-header">
+        <h2>AI-Powered Recipe Suggestions</h2>
+        <button class="ai-hide-btn" onclick="hideAiSuggestions()">✕</button>
     </div>
-    <ul id="recipeSuggestionsList" class="suggestions-list" aria-live="polite" style="position: static; width: 100%; max-height: none;"></ul>
+    <div id="aiSmartSuggestions"></div>
 </div>
 
 <h2>Total Nutrition</h2>
-<p id="totalOutput">Click "Calculate" to see total nutrition.</p>
+<p id="totalOutput">Click "Calculate" to see a deep analysis of the recipe.</p>
+
 
 <div class="recipe-actions" style="text-align: center; margin: 20px 0;">
     <button id="exportBtn">📤 Export Recipes</button>
@@ -70,14 +66,6 @@
 
 <button id="scrollTop" style="position: fixed; bottom: 80px; right: 20px; display: none;">⬆️</button>
 
-<!--
-<h2>Save as Recipe</h2>
-<form id="saveRecipeForm" style="margin-bottom: 20px;">
-    <input type="text" id="recipeName" placeholder="Recipe name" required>
-    <input type="text" id="recipeDescription" placeholder="Description (optional)">
-    <button type="submit">Save Recipe</button>
-</form>-->
-
 <footer class="footer">
     <pre>&copy;2025 @drclcomputers |  </pre>
     <button id="toggleDarkMode">🌙 Toggle Dark Mode</button>
@@ -86,9 +74,8 @@
 <script src="src/js/config.js"></script>
 <script src="src/js/main.js"></script>
 <script src="src/js/suggestions.js"></script>
-<script src="src/js/recipes.js"></script>
 <script src="src/js/darkmodescript.js"></script>
 <script src="src/js/scroll.js"></script>
-
+<script src="src/js/ai.js"></script>
 </body>
 </html>

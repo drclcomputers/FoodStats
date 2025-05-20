@@ -21,6 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function checkCardVisibility() {
+        const cards = document.querySelectorAll('.recipe-card:not(.visible)');
+        const triggerBottom = window.innerHeight * 0.8;
+
+        cards.forEach(card => {
+            const cardTop = card.getBoundingClientRect().top;
+            if (cardTop < triggerBottom) {
+                card.classList.add('visible');
+            }
+        });
+    }
+
     function displayRecipes(recipes) {
         recipeList.innerHTML = '';
 
@@ -30,39 +42,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const grid = document.createElement('div');
-        grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-        grid.style.gap = '20px';
-        grid.style.padding = '20px';
-        grid.style.maxWidth = '1200px';
-        grid.style.margin = '0 auto';
+        grid.className = 'recipe-grid';
 
-        recipes.forEach((recipe, index) => {
+        recipes.forEach((recipe) => {
             const article = document.createElement('article');
-            article.className = 'recipe-card';
+            article.className = 'recipe-card'; // Make all cards visible initially
             const ingredients = recipe.ingredients || [];
 
-            if (index < 2) {
-                article.classList.add('initial-visible');
-            }
-
             article.innerHTML = `
-                <h2 style="text-align: center">${recipe.name}</h2>
-                ${recipe.description
-                ? `<p class="description" style="text-align: center">
-                        <abbr title="${recipe.description}">${recipe.description.substring(0, 100)}${recipe.description.length > 100 ? '...' : ''}</abbr>
-                       </p>`
-                : ''}
-                <ul style="margin: 15px 0">
-                    ${ingredients.map(ing =>
-                `<li>${ing.name} (${ing.grams}g)</li>`
-            ).join('')}
-                </ul>
-                <div style="text-align: center">
-                    <button class="use-recipe-btn" data-recipe="${recipe.name}">
-                        Use This Recipe
-                    </button>
+                <h3>${recipe.name}</h3>
+                ${recipe.description ? 
+                    `<p class="recipe-description">${recipe.description}</p>` 
+                    : ''}
+                <div class="ingredients-list">
+                    <h4>Ingredients:</h4>
+                    <ul>
+                        ${ingredients.map(ing =>
+                            `<li>${ing.name} (${ing.grams}g)</li>`
+                        ).join('')}
+                    </ul>
                 </div>
+                <button class="use-recipe-btn" data-recipe="${recipe.name}">
+                    Use This Recipe
+                </button>
             `;
 
             article.querySelector('.use-recipe-btn').addEventListener('click', async (e) => {
@@ -100,14 +102,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else {
                                 skippedIngredients.push(ingredient.name);
                             }
-                        } catch (ingError) {
+                        } catch (err) {
                             skippedIngredients.push(ingredient.name);
-                            continue;
                         }
                     }
 
                     if (addedCount > 0) {
+                        // Fix: Use backticks for template literal, don't redeclare recipeName
                         localStorage.setItem('currentRecipe', `📗 ${recipeName}`);
+                        
                         if (skippedIngredients.length > 0) {
                             showToast(`Added ${addedCount} ingredients. Skipped: ${skippedIngredients.slice(0,2).join(', ')}${skippedIngredients.length > 2 ? '...' : ''}`);
                         }
@@ -119,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 catch (error) {
                     console.error('Recipe loading error:', error);
                     showToast("Error loading recipe!");
+                } finally {
                     btn.disabled = false;
                     btn.textContent = 'Use This Recipe';
                 }
@@ -126,8 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             grid.appendChild(article);
 
-            window.addEventListener('scroll', checkCardVisibility);
-            checkCardVisibility()
+            setTimeout(checkCardVisibility, 100);
+        
+            window.addEventListener('scroll', () => {
+                requestAnimationFrame(checkCardVisibility);
+            });
         });
 
         recipeList.appendChild(grid);
@@ -135,18 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchRecipes();
 });
-
-function checkCardVisibility() {
-    const cards = document.querySelectorAll('.recipe-card:not(.initial-visible)');
-    const windowHeight = window.innerHeight;
-
-    cards.forEach(card => {
-        const cardTop = card.getBoundingClientRect().top;
-        if (cardTop < windowHeight * 0.8) {
-            card.classList.add('visible');
-        }
-    });
-}
 
 document.addEventListener('beforeunload', () => {
     window.removeEventListener('scroll', checkCardVisibility);
