@@ -92,6 +92,22 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 	}
 	fmt.Println(path)
 
+	if os.Getenv("RENDER") == "true" {
+		log.Println("Running on Render.com, checking Python dependencies...")
+
+		installCmd := exec.Command("pip3", "install", "--user",
+			"numpy>=1.24.3,<2.0.0",
+			"pandas>=1.5.3,<2.0.0",
+			"scikit-learn>=1.2.2,<1.4.0")
+
+		installOutput, err := installCmd.CombinedOutput()
+		if err != nil {
+			log.Printf("Warning: Failed to install Python dependencies: %v\nOutput: %s", err, string(installOutput))
+		} else {
+			log.Printf("Successfully installed Python dependencies")
+		}
+	}
+
 	recommendPath := filepath.Join(s.mlsPath, "recommend.py")
 	log.Printf("Looking for Python recommendation script at: %s", recommendPath)
 
@@ -142,6 +158,22 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 	data, err := json.Marshal(ingredients)
 	if err != nil {
 		return nil, err
+	}
+
+	if os.Getenv("RENDER") == "true" {
+		log.Println("Running on Render.com, checking Python dependencies...")
+
+		installCmd := exec.Command("pip3", "install", "--user",
+			"numpy>=1.24.3,<2.0.0",
+			"pandas>=1.5.3,<2.0.0",
+			"scikit-learn>=1.2.2,<1.4.0")
+
+		installOutput, err := installCmd.CombinedOutput()
+		if err != nil {
+			log.Printf("Warning: Failed to install Python dependencies: %v\nOutput: %s", err, string(installOutput))
+		} else {
+			log.Printf("Successfully installed Python dependencies")
+		}
 	}
 
 	scriptPath := filepath.Join(s.mlsPath, "analyzer.py")
