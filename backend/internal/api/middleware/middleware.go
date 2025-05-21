@@ -9,7 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -19,22 +19,31 @@ func CORS() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			origin := r.Header.Get("Origin")
-			isDev := os.Getenv("GO_ENV") != "production"
 
-			if isDev || origin == "" || origin == "file://" || origin == "null" {
-				w.Header().Set("Access-Control-Allow-Origin", "*")
-			} else {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
-				w.Header().Set("Vary", "Origin")
+			allowedOrigins := []string{
+				"https://foodstats.onrender.com",
+				"https://foodstats-frontend.onrender.com",
+				"http://localhost:8080",
+				"http://localhost:3000",
 			}
 
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Session-ID")
-			w.Header().Set("Access-Control-Max-Age", "3600")
+			allowOrigin := false
+			for _, allowed := range allowedOrigins {
+				if origin == allowed {
+					allowOrigin = true
+					break
+				}
+			}
 
-			if r.Method == "OPTIONS" {
-				w.WriteHeader(http.StatusOK)
-				return
+			if strings.Contains(origin, ".onrender.com") {
+				allowOrigin = true
+			}
+
+			if allowOrigin {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Vary", "Origin")
+			} else if origin == "" || origin == "file://" || origin == "null" {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
 			}
 
 			next.ServeHTTP(w, r)
