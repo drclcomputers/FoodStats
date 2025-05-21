@@ -95,7 +95,7 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 	if os.Getenv("RENDER") == "true" {
 		log.Println("Running on Render.com, checking Python dependencies...")
 
-		installCmd := exec.Command("pip3", "install", "--user",
+		installCmd := exec.Command("pip3", "install",
 			"numpy>=1.24.3,<2.0.0",
 			"pandas>=1.5.3,<2.0.0",
 			"scikit-learn>=1.2.2,<1.4.0")
@@ -163,7 +163,7 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 	if os.Getenv("RENDER") == "true" {
 		log.Println("Running on Render.com, checking Python dependencies...")
 
-		installCmd := exec.Command("pip3", "install", "--user",
+		installCmd := exec.Command("pip3", "install",
 			"numpy>=1.24.3,<2.0.0",
 			"pandas>=1.5.3,<2.0.0",
 			"scikit-learn>=1.2.2,<1.4.0")
