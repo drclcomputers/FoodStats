@@ -98,6 +98,7 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 	if _, err := os.Stat(recommendPath); os.IsNotExist(err) {
 		log.Printf("ERROR: Python recommendation script not found at %s", recommendPath)
 		possiblePaths := []string{
+			"backend/internal/mls/recommend.py",
 			"recommend.py",
 			"./internal/mls/recommend.py",
 			"../internal/mls/recommend.py",
@@ -149,6 +150,7 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		log.Printf("ERROR: Python script not found at %s", scriptPath)
 		possiblePaths := []string{
+			"backend/internal/mls/analyzer.py",
 			"analyzer.py",
 			"./internal/mls/analyzer.py",
 			"../internal/mls/analyzer.py",
