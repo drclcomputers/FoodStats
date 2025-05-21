@@ -43,16 +43,40 @@ func NewAIService() *AIService {
 
 	var mlsPath string
 	if isRender {
-		mlsPath = filepath.Join("internal", "mls")
+		candidates := []string{
+			filepath.Join("internal", "mls"),
+			"/opt/render/project/src/internal/mls",
+			"/opt/render/project/internal/mls",
+			"/app/internal/mls",
+			".",
+		}
 
-		if _, err := os.Stat(mlsPath); os.IsNotExist(err) {
-			renderPath := filepath.Join("/opt", "render", "project", "src", "internal", "mls")
-			if _, err := os.Stat(renderPath); err == nil {
-				mlsPath = renderPath
+		cwd, _ := os.Getwd()
+		log.Printf("Current working directory: %s", cwd)
+
+		for _, path := range candidates {
+			log.Printf("Checking MLS directory: %s", path)
+			if _, err := os.Stat(path); err == nil {
+				if _, err := os.Stat(filepath.Join(path, "analyzer.py")); err == nil {
+					mlsPath = path
+					log.Printf("Found valid MLS directory: %s", mlsPath)
+					break
+				}
 			}
+		}
+
+		if mlsPath == "" {
+			mlsPath = "/app/internal/mls"
+			log.Printf("No valid MLS directory found, defaulting to: %s", mlsPath)
 		}
 	} else {
 		mlsPath = filepath.Join("internal", "mls")
+	}
+
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, "RENDER") || strings.HasPrefix(env, "PATH") {
+			log.Printf("Environment: %s", env)
+		}
 	}
 
 	return &AIService{
@@ -62,7 +86,11 @@ func NewAIService() *AIService {
 }
 
 func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Recipe, error) {
-	exec.Command("ls")
+	path, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(path)
 
 	recommendPath := filepath.Join(s.mlsPath, "recommend.py")
 	log.Printf("Looking for Python recommendation script at: %s", recommendPath)
@@ -104,7 +132,11 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 }
 
 func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *config.UserProfile) (*config.NutritionAnalysis, error) {
-	exec.Command("ls")
+	path, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(path)
 
 	data, err := json.Marshal(ingredients)
 	if err != nil {
