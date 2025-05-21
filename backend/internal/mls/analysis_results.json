@@ -1,0 +1,82 @@
+[
+  {
+    "recipe": "Balanced Chicken Salad",
+    "analysis": {
+      "health_score": 49.0,
+      "recommendations": [
+        "Include more complex carbohydrates for sustained energy",
+        "Consider reducing fat intake for heart health",
+        "Increase fiber intake with whole grains and vegetables"
+      ],
+      "nutrient_balance": {
+        "Proteins": 0.4785020804438281,
+        "Carbs": 0.1664355062413315,
+        "Fats": 0.3550624133148405
+      },
+      "nutrient_scores": {
+        "Proteins": 0.8,
+        "Carbs": 0.37,
+        "Fats": 0.99
+      },
+      "metrics_breakdown": {
+        "protein_ratio": 10.222222222222221,
+        "fiber_score": 5.0,
+        "fat_balance": 18.277777777777782,
+        "carb_balance": 15.462962962962962
+      }
+    }
+  },
+  {
+    "recipe": "Carb-Heavy Pasta",
+    "analysis": {
+      "health_score": 52.5,
+      "recommendations": [
+        "Add lean protein sources like chicken, fish, or legumes",
+        "Consider reducing fat intake for heart health",
+        "Increase fiber intake with whole grains and vegetables"
+      ],
+      "nutrient_balance": {
+        "Proteins": 0.11392405063291139,
+        "Carbs": 0.6244725738396625,
+        "Fats": 0.2616033755274262
+      },
+      "nutrient_scores": {
+        "Proteins": 0.46,
+        "Carbs": 1.0,
+        "Fats": 1.0
+      },
+      "metrics_breakdown": {
+        "protein_ratio": 2.6557377049180326,
+        "fiber_score": 4.133333333333333,
+        "fat_balance": 21.065573770491802,
+        "carb_balance": 24.631147540983605
+      }
+    }
+  },
+  {
+    "recipe": "Protein Smoothie",
+    "analysis": {
+      "health_score": 60.5,
+      "recommendations": [
+        "Include more complex carbohydrates for sustained energy",
+        "Increase fiber intake with whole grains and vegetables"
+      ],
+      "nutrient_balance": {
+        "Proteins": 0.4030501089324619,
+        "Carbs": 0.4466230936819172,
+        "Fats": 0.15032679738562094
+      },
+      "nutrient_scores": {
+        "Proteins": 0.92,
+        "Carbs": 0.99,
+        "Fats": 0.75
+      },
+      "metrics_breakdown": {
+        "protein_ratio": 10.698795180722891,
+        "fiber_score": 2.4000000000000004,
+        "fat_balance": 24.981927710843372,
+        "carb_balance": 22.379518072289155
+      }
+    }
+  }
+]

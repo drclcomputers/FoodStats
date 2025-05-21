@@ -24,56 +24,105 @@ const SESSION_ID = (() => {
 
 async function fetchWithSession(path, options = {}) {
     try {
-
         const isHealthy = await checkServerHealth();
         if (!isHealthy) {
-            throw new Error('Server is not healthy');
+        showToast("Server health check failed. Please try again later.");
+        throw new Error("Server is not healthy. Health check failed.");
         }
 
         options.headers = {
-            ...options.headers,
-            'X-Session-ID': SESSION_ID,
-            'Content-Type': 'application/json',
+        ...options.headers,
+        "X-Session-ID": SESSION_ID,
+        "Content-Type": "application/json",
         };
 
-        options.credentials = 'same-origin';
+        options.credentials = "same-origin";
 
         const response = await fetch(path, options);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        const message =
+            errorData?.message || `HTTP error! Status: ${response.status}`;
+        showToast(`Request failed: ${message}`);
+        throw new Error(
+            `HTTP error! status: ${response.status}, message: ${message}`
+        );
         }
         return response;
     } catch (error) {
-        console.error('Fetch error:', error);
-        showToast('Server connection error');
+        console.error("Fetch error details:", error.message);
+        if (
+        error.message !== "Server is not healthy. Health check failed." &&
+        !error.message.startsWith("HTTP error!")
+        ) {
+        showToast("A connection error occurred. Please check your network.");
+        }
         throw error;
     }
 }
 
-function showToast(message) {
-    let container = document.querySelector('.toast-container');
+function showToast(message, duration = 3000) {
+    let container = document.querySelector(".toast-container");
     if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container';
+        container = document.createElement("div");
+        container.className = "toast-container";
         document.body.appendChild(container);
     }
 
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'toastOut 0.3s ease forwards';
-        setTimeout(() => {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    
+    const content = document.createElement("div");
+    content.className = "toast-content";
+    content.innerHTML = message;
+    
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.innerHTML = "×";
+    closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        toast.style.animation = "toastOut 0.3s ease forwards";
+        
+        const handleClose = () => {
             if (container.contains(toast)) {
                 toast.remove();
             }
-            if (container.children.length === 0) {
+            if (container.children.length === 0 && document.body.contains(container)) {
                 container.remove();
             }
-        }, 300);
-    }, 3000);
+        };
+        
+        toast.addEventListener("animationend", handleClose, { once: true });
+        setTimeout(handleClose, 350);
+    };
+    
+    toast.appendChild(content);
+    toast.appendChild(closeBtn);
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        if (!container.contains(toast)) return;
+        
+        toast.style.animation = "toastOut 0.3s ease forwards";
+
+        const onAnimationEnd = () => {
+            if (container.contains(toast)) {
+                toast.remove();
+            }
+            if (container.children.length === 0 && document.body.contains(container)) {
+                container.remove();
+            }
+        };
+
+        toast.addEventListener("animationend", onAnimationEnd, { once: true });
+
+        setTimeout(() => {
+            if (container.contains(toast) || 
+                (container.children.length === 0 && document.body.contains(container))) {
+                onAnimationEnd();
+            }
+        }, 350);
+    }, duration);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -89,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     localStorage.setItem('toasts', '[]');
+    
+    checkUserProfile();
 });
 
 async function checkServerHealth() {
@@ -108,5 +159,30 @@ async function checkServerHealth() {
     }
 }
 
-
+async function checkUserProfile() {
+    if (window.location.pathname.includes('profile.html')) {
+        return;
+    }
+    
+    const localProfile = localStorage.getItem('userProfile');
+    if (localProfile) {
+        const profileData = JSON.parse(localProfile);
+        if (profileData && profileData.age) {
+            return;
+        }
+    }
+    
+    try {
+        const response = await fetchWithSession(`${API_BASE}/getprofile`);
+        const data = await response.json();
+        
+        if (data && data.age) {
+            localStorage.setItem('userProfile', JSON.stringify(data));
+            return;
+        }
+        showToast("📝 Complete your profile for personalized nutrition advice! <a href='profile.html' style='color:white;text-decoration:underline;'>Go to Profile</a>", 7000);
+    } catch (error) {
+        console.error("Error checking user profile:", error);
+    }
+}
 

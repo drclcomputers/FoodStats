@@ -1,9 +1,15 @@
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
 package handlers
 
 import (
 	"FoodStats/internal/config"
 	"FoodStats/internal/database"
 	"encoding/json"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -30,10 +36,6 @@ func AddIngredientHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	input.Name = strings.TrimSpace(input.Name)
 	input.Name = strings.ToLower(input.Name)
-	if input.Grams <= 0 || input.Name == "" {
-		http.Error(w, "Invalid input values", http.StatusBadRequest)
-		return
-	}
 
 	ingredient, err := database.ReturnIngredient(input)
 	if err != nil {
@@ -52,7 +54,10 @@ func AddIngredientHandler(w http.ResponseWriter, r *http.Request) {
 	config.UserIngredients[sessionID] = append(config.UserIngredients[sessionID], ingredient)
 
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(ingredient)
+	err = json.NewEncoder(w).Encode(ingredient)
+	if err != nil {
+		log.Print(err)
+	}
 
 	//fmt.Printf("SessionID: %s, Ingredients: %+v\n", sessionID, config.UserIngredients[sessionID])
 }
@@ -84,13 +89,13 @@ func ListIngredientsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CalculateHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -131,7 +136,7 @@ func DeleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
 	config.MU.Lock()
 	defer config.MU.Unlock()
 
-	name = strings.ToLower(r.URL.Query().Get("name"))
+	name = strings.ToLower(name)
 	newList := make([]config.Ingredient, 0)
 	for _, ing := range config.UserIngredients[sessionID] {
 		if strings.ToLower(ing.Name) != name {
@@ -140,8 +145,12 @@ func DeleteIngredientHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	config.UserIngredients[sessionID] = newList
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message":"Ingredient deleted."}`))
+	response := map[string]string{"message": "Ingredient deleted."}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 func ResetHandler(w http.ResponseWriter, r *http.Request) {
@@ -162,5 +171,8 @@ func ResetHandler(w http.ResponseWriter, r *http.Request) {
 	config.MU.Unlock()
 
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message":"Ingredient list reset."}`))
+	response := map[string]string{"message": "Ingredient list reset."}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }

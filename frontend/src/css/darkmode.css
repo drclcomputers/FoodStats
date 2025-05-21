@@ -5,25 +5,43 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 */
 
-body.dark-mode {
-    background: #121212;
-    color: #e0e0e0;
+/* ====== DARK MODE VARIABLES ====== */
+:root {
+    --dark-bg-primary: #121212;
+    --dark-bg-secondary: #1a1a1a;
+    --dark-bg-elevated: #23272e;
+    --dark-bg-input: #181a1b;
+    --dark-text-primary: #e0e0e0;
+    --dark-text-secondary: #aaa;
+    --dark-border: #222;
+    --dark-accent: #90caf9;
+    --dark-button-primary: #1565c0;
+    --dark-button-hover: #0d47a1;
+    --dark-delete-btn: #ef5350;
+    --dark-delete-btn-hover: #c62828;
+    --dark-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    --dark-box-shadow-heavy: 0 2px 8px rgba(0, 0, 0, 0.45);
+    --dark-scrollbar-bg: #1e1e1e;
+    --dark-scrollbar-thumb: #757575;
+}
+
+/* ====== BASE STYLES ====== */
+body.dark-mode,
+html.dark-mode {
+    background: var(--dark-bg-primary);
+        color: var(--dark-text-primary);
+        scrollbar-color: var(--dark-scrollbar-thumb) var(--dark-scrollbar-bg);
 }
 
 body.dark-mode h1 {
-    color: #90caf9;
+    color: var(--dark-accent);
 }
 
-body.dark-mode,
-html.dark-mode {
-    background: #121212;
-    color: #e0e0e0;
-}
-
+/* ====== LAYOUT COMPONENTS ====== */
 body.dark-mode .navbar,
 body.dark-mode .footer {
-    background: #1a1a1a;
-    color: #e0e0e0;
+    background: var(--dark-bg-secondary);
+        color: var(--dark-text-primary);
 }
 
 body.dark-mode .container,
@@ -34,142 +52,96 @@ body.dark-mode #totalOutput,
 body.dark-mode .ai-analysis,
 body.dark-mode .recipe-card,
 body.dark-mode .suggestions-list,
-body.dark-mode #recipeSuggestionsSection {
-    background: #23272e;
-    color: #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+body.dark-mode #recipeSuggestionsSection,
+body.dark-mode .recommendations-grid article {
+    background: var(--dark-bg-elevated);
+    color: var(--dark-text-primary);
+    box-shadow: var(--dark-box-shadow);
 }
 
-body.dark-mode .recipe-card h3 {
-    background: #23272e;
-    color: #e0e0e0;
-    font: bold 1.2rem 'Poppins', sans-serif;
-    text-decoration: underline
-}
-
-body.dark-mode .recipe-card p {
-    color: #e0e0e0;
-}
-
-body.dark-mode .score-circle {
-    background: linear-gradient(135deg, #2b6777, #52ab98);
-    color: #fff;
-}
-
+/* ====== BUTTONS & INTERACTIVE ELEMENTS ====== */
 body.dark-mode button,
 body.dark-mode .button {
-    background: #1565c0;
+    background: var(--dark-button-primary);
     color: #fff;
 }
 
 body.dark-mode button:hover,
 body.dark-mode .button:hover {
-    background: #0d47a1;
+    background: var(--dark-button-hover);
 }
 
 body.dark-mode .delete-btn {
-    background: #ef5350;
+    background: var(--dark-delete-btn);
 }
 
 body.dark-mode .delete-btn:hover {
-    background: #c62828;
+    background: var(--dark-delete-btn-hover);
 }
 
+/* ====== FORM ELEMENTS ====== */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode #name,
+body.dark-mode #grams,
+body.dark-mode #recipeSearchForm {
+    background: var(--dark-bg-input);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus,
+body.dark-mode #name:focus,
+body.dark-mode #grams:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 16px rgba(82, 171, 152, 0.18);
+}
+
+body.dark-mode #recipeSearchInput {
+    color: var(--dark-text-primary);
+    background: transparent;
+}
+
+body.dark-mode #recipeSearchInput::placeholder {
+    color: var(--dark-text-secondary);
+}
+
+/* ====== SUGGESTIONS & LISTS ====== */
 body.dark-mode #recipeSuggestions,
 body.dark-mode #suggestions,
 body.dark-mode .suggestions-list,
 body.dark-mode #recipeSuggestionsList {
-    background: #111 !important;
-    color: #eee !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    background: var(--dark-bg-primary) !important;
+    color: var(--dark-text-primary) !important;
+    box-shadow: var(--dark-box-shadow-heavy);
 }
+
 body.dark-mode #recipeSuggestions li,
 body.dark-mode #suggestions li,
 body.dark-mode .suggestions-list li,
 body.dark-mode #recipeSuggestionsList li {
-    border-bottom: 1px solid #222;
-    color: #e0e0e0;
+    border-bottom: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
 }
 
 body.dark-mode #recipeSuggestions li:hover,
 body.dark-mode #suggestions li:hover,
 body.dark-mode .suggestions-list li:hover,
 body.dark-mode #recipeSuggestionsList li:hover {
-    background: #222;
+    background: var(--dark-bg-secondary);
 }
 
-body.dark-mode input,
-body.dark-mode textarea,
-body.dark-mode select {
-    background: #181a1b;
-    color: #e0e0e0;
-    border-color: #333;
-}
-
-body.dark-mode input:focus,
-body.dark-mode textarea:focus,
-body.dark-mode select:focus {
-    border-color: #52ab98;
-    box-shadow: 0 0 5px rgba(82,171,152,0.15);
-    outline: none;
-}
-
-body.dark-mode #recipeSearchForm {
-    background: #181a1b;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-}
-
-body.dark-mode #recipeSearchInput {
-    color: #eee;
-    background: transparent;
-}
-
-body.dark-mode #recipeSearchInput::placeholder {
-    color: #888;
-}
-
-body.dark-mode #recipeSuggestions {
-    background: #111 !important;
-    color: #eee !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
-}
-
-body.dark-mode #recipeSuggestions li {
-    border-bottom: 1px solid #222;
-}
-
-body.dark-mode #recipeSuggestions li:hover {
-    background: #222;
-}
-
-body.dark-mode #name,
-body.dark-mode #grams {
-    background: #181a1b;
-    border-color: #333;
-    color: #e0e0e0;
-}
-
-body.dark-mode #name:focus,
-body.dark-mode #grams:focus {
-    border-color: #52ab98;
-    box-shadow: 0 4px 16px rgba(82,171,152,0.18);
-}
-
+/* ====== AI COMPONENTS ====== */
 body.dark-mode #aiAnalysisSection {
-    background: #181a1b;
-    color: #e0e0e0;
+    background: var(--dark-bg-input);
+        color: var(--dark-text-primary);
 }
 
 body.dark-mode .ai-hide-btn {
-    color: #90caf9;
-}
-
-body.dark-mode .ai-hide-btn:hover {
-    background: rgba(144, 202, 249, 0.1);
-}
-
-body.dark-mode .ai-hide-btn {
-    color: #90caf9;
+    color: var(--dark-accent);
 }
 
 body.dark-mode .ai-hide-btn:hover {
@@ -177,36 +149,148 @@ body.dark-mode .ai-hide-btn:hover {
 }
 
 body.dark-mode .subtitle {
-    color: #aaa;
+    color: var(--dark-text-secondary);
+}
+
+/* ====== RECIPE COMPONENTS ====== */
+body.dark-mode .recipe-card h3 {
+    color: var(--dark-text-primary);
+    font: bold 1.2rem 'Poppins', sans-serif;
+    text-decoration: underline;
+}
+
+body.dark-mode .recipe-card p {
+    color: var(--dark-text-primary);
 }
 
 body.dark-mode .recommendations-grid article {
-    background: #23272e;
+    background: var(--dark-bg-elevated);
+    border-color: var(--dark-border);
+    color: var(--dark-text-primary);
+    box-shadow: var(--dark-box-shadow);
+}
+
+body.dark-mode .recommendations-grid article:nth-child(odd) {
+    background: var(--dark-bg-secondary);
+}
+
+body.dark-mode .recommendations-grid article:hover {
+    background: #2c3e50;
+    border-color: var(--dark-accent);
 }
 
 body.dark-mode .recommendations-grid h2 {
-    color: #90caf9;
+    color: var(--dark-accent);
 }
 
 body.dark-mode .recommendations-grid p {
-    color: #e0e0e0;
+    color: var(--dark-text-secondary);
 }
 
+body.dark-mode .score-circle {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+}
+
+/* ====== SCROLLBAR STYLES ====== */
 body.dark-mode .suggestions-list::-webkit-scrollbar {
-    background: #afafaf;
+    background: var(--dark-scrollbar-bg);
 }
+
 body.dark-mode .suggestions-list::-webkit-scrollbar-thumb {
-    background: #757575;
+    background: var(--dark-scrollbar-thumb);
 }
 
-body.dark-mode, html.dark-mode {
-    scrollbar-color: #757575 #1e1e1e;
+body.dark-mode::-webkit-scrollbar,
+html.dark-mode::-webkit-scrollbar {
+    background: var(--dark-scrollbar-bg);
 }
 
-body.dark-mode::-webkit-scrollbar, html.dark-mode::-webkit-scrollbar {
-    background: #1e1e1e;
-}
-body.dark-mode::-webkit-scrollbar-thumb, html.dark-mode::-webkit-scrollbar-thumb {
-    background: #757575;
+body.dark-mode::-webkit-scrollbar-thumb,
+html.dark-mode::-webkit-scrollbar-thumb {
+    background: var(--dark-scrollbar-thumb);
 }
 
+/* === Healthy Recipes Filters === */
+body.dark-mode .recipe-filter {
+    background: var(--dark-bg-secondary);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode #ingredientFilterInput {
+    background: var(--dark-bg-input);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode #veganFilterCheckbox{
+    background: var(--dark-bg-input);
+    color: var(--dark-text-primary);
+}
+
+/* === Profile Page === */
+body.dark-mode .profile-container {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .profile-form {
+    background-color: var(--dark-bg-secondary);
+    box-shadow: var(--dark-box-shadow);
+}
+
+body.dark-mode .nutrition-summary {
+    background-color: var(--dark-bg-secondary);
+    box-shadow: var(--dark-box-shadow);
+}
+
+body.dark-mode .form-group label {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .checkbox-group label {
+    color: var(--dark-text-secondary);
+}
+
+body.dark-mode .nutrition-card {
+    border-bottom: 1px solid var(--dark-border);
+}
+
+body.dark-mode .nutrition-value {
+    color: var(--dark-accent);
+}
+
+body.dark-mode .nutrition-note {
+    color: var(--dark-text-secondary);
+}
+
+body.dark-mode .save-profile-btn {
+    background-color: var(--dark-button-primary);
+    color: #fff;
+}
+
+body.dark-mode .save-profile-btn:hover {
+    background-color: var(--dark-button-hover);
+}
+
+body.dark-mode .reset-profile-btn {
+    background-color: var(--dark-delete-btn);
+    color: #fff;
+}
+
+body.dark-mode .reset-profile-btn:hover {
+    background-color: var(--dark-delete-btn-hover);
+}
+
+body.dark-mode #age,
+body.dark-mode #gender,
+body.dark-mode #weight, 
+body.dark-mode #height,
+body.dark-mode #activityLevel,
+body.dark-mode #goal {
+    background-color: var(--dark-bg-input);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode input[type="checkbox"] {
+    accent-color: var(--dark-accent);
+}

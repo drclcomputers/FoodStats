@@ -1,8 +1,15 @@
+/*
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+*/
+
 .ai-analysis {
     background: #fff;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--box-shadow);
     max-width: 650px;
     margin: 20px auto;
     display: flex;
@@ -39,7 +46,7 @@
     font-size: 32px;
     font-weight: bold;
     margin: 20px auto;
-    box-shadow: 0 4px 12px rgba(43, 103, 119, 0.2);
+    box-shadow: var(--box-shadow)
 }
 
 .analysis-results h3 {
@@ -130,7 +137,7 @@
     margin: 8px 0;
     background: #f8f9fa;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: var(--box-shadow);
     transition: transform 0.2s;
 }
 

@@ -112,21 +112,26 @@ A modern desktop application for tracking nutritional information and discoverin
 - `GET /api/list-recipes` - List all recipes
 - `GET /api/get-recipe?name=...` - Get a recipe by name
 - `GET /api/suggest-recipes` - Suggest recipes based on current ingredients
+- `POST /api/analyze-nutrition` - Get AI-powered nutritional analysis
+- `POST /api/save-profile` - Save user profile data
+- `GET /api/get-profile` - Retrieve user profile data
+- `DELETE /api/reset-profile` - Delete user profile data
 
 ---
 
 ## 📱 Screenshots
 
-![FoodStats Main Interface](/assets/img_1.png)
-![FoodStats Healthy Recipes](/assets/img.png)
-![FoodStats Recommendations](/assets/img_2.png)
+![FoodStats Main Interface](/assets/img.png)
+![FoodStats Healthy Recipes](/assets/img_1.png)
+![FoodStats AI Suggestions](/assets/img_2.png)
+![FoodStats Recommendations](/assets/img_3.png)
 
 ---
 
 ## 💻 System Requirements (Desktop App)
 
 - Windows 10 or later / Linux (Ubuntu 20.04 or later recommended)
-- 4GB RAM minimum
+- 4GB RAM absolute minimum (recommended 8+ GB RAM)
 - 500MB disk space
 - Internet connection for installation
 - Python >=3.11 for AI recommendations
@@ -139,6 +144,22 @@ The application stores its settings in:
 - Dark mode preference: LocalStorage
 - Database: SQLite file in the application directory
 - Server: Automatically managed by Electron
+
+---
+
+## 🐍 Python Requirements
+
+The AI recommendation system requires the following Python packages:
+```
+numpy>=1.23.0
+pandas>=1.5.0
+scikit-learn>=1.2.0
+```
+
+These packages are automatically installed during application setup. For manual installation, run:
+```bash
+pip install -r backend/requirements.txt
+```
 
 ---
 
@@ -180,6 +201,36 @@ Give a ⭐️ if this project helped you!
 ---
 
 ## 📝 Changelog
+
+### Version 4.0.0
+
+- **Personalized Profile System**
+  - User profiles with age, gender, weight, height, and activity level
+  - Dietary preference tracking (vegetarian, vegan, gluten-free, etc.)
+  - Personalized calorie and macronutrient recommendations
+  - Custom nutritional advice based on user characteristics
+  - Profile reset functionality with confirmation
+
+- **Enhanced AI Analysis**
+  - Personalized nutritional feedback based on user profile
+  - Improved recipe recommendations considering dietary preferences
+  - Custom macronutrient targets based on fitness goals
+  - Context-aware suggestions based on user activity level
+  - More accurate health scoring based on individual needs
+
+- **Improved User Experience**
+  - Better toast notification system with dismiss controls
+  - Improved file import/export functionality
+  - Enhanced recipe source tracking
+  - Dark mode support for all new components
+  - Smart reminder system for profile completion
+
+- **Backend Improvements**
+  - Session-based profile storage
+  - Enhanced security for personal data
+  - Middleware improvements for API stability
+  - Cloud compatibility for potential Render.com hosting
+  - Performance optimizations for ML components
 
 ### Version 3.0.0
 

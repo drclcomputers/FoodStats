@@ -65,7 +65,7 @@ class SuggestionsManager {
     async handleRecipeInput() {
         const query = this.recipeSearchInput.value.trim().toLowerCase();
         
-        if (query.length < 3) {
+        if (query.length < 2) {
             this.hideSuggestions(this.recipeSuggestions);
             return;
         }
@@ -83,10 +83,20 @@ class SuggestionsManager {
         }
     }
 
+    filterRecipes(query) {
+        query = query.trim().toLowerCase();
+        if (!query) return this.recipeListCache;
+        return this.recipeListCache.filter(recipe => {
+            const nameMatch = recipe.name.toLowerCase().includes(query);
+            //const ingredientMatch = (recipe.ingredients || []).some(ing =>
+                //ing.name.toLowerCase().includes(query)
+            //);
+            return nameMatch
+        });
+    }
+
     showRecipeSuggestions(query) {
-        const matches = this.recipeListCache.filter(recipe => 
-            recipe.name.toLowerCase().includes(query)
-        );
+        const matches = this.filterRecipes(query);
 
         this.recipeSuggestions.innerHTML = matches.length > 0 
             ? matches.slice(0, 5).map(recipe => `
@@ -122,16 +132,28 @@ class SuggestionsManager {
     }
 
     hideSuggestions(element) {
-        if (!element || !element.innerHTML) return;
+        if (!element || !element.innerHTML || element.style.display === "none")
+        return;
 
-        element.classList.remove('showing');
-        element.classList.add('hiding');
+        element.classList.remove("showing");
+        element.classList.add("hiding");
+
+        const onAnimationEnd = () => {
+        element.style.display = "none";
+        element.classList.remove("hiding");
+        };
+
+        element.addEventListener("animationend", onAnimationEnd, { once: true });
+
         setTimeout(() => {
-            if (element.classList.contains('hiding')) {
-                element.style.display = 'none';
-                element.classList.remove('hiding');
-            }
-        }, 300);
+        if (element.classList.contains("hiding")) {
+            console.warn(
+            "Suggestion hide animationend event timed out or did not fire. Hiding manually.",
+            element
+            );
+            onAnimationEnd();
+        }
+        }, 350);
     }
 
     handleClickOutside(e) {
@@ -159,39 +181,72 @@ class SuggestionsManager {
     }
 
     async useRecipe(recipeName) {
-        try {
-            await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
-            const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(recipeName)}`);
-            const recipe = await response.json();
-
-            let addedCount = 0;
-            for (const ingredient of recipe.ingredients) {
-                try {
-                    const res = await fetchWithSession(`${API_BASE}/addingredient`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            name: ingredient.name,
-                            grams: ingredient.grams
-                        })
-                    });
-                    if (res.ok) addedCount++;
-                } catch (err) {
-                    console.error('Error adding ingredient:', err);
-                }
+        if (window.aiManager && typeof window.aiManager.loadRecipe === "function") {
+            try {
+                await window.aiManager.loadRecipe(recipeName);
+                this.hideSuggestions(this.recipeSuggestions);
+            } catch (error) {
+                console.error("Error delegating recipe load to AIManager:", error);
+                showToast("Failed to initiate recipe loading via AI Manager.");
             }
-
-            if (addedCount > 0) {
-                localStorage.setItem('currentRecipe', `📖 ${recipeName}`);
-                window.location.href = 'index.html';
-            } else {
-                showToast('No ingredients could be added');
-            }
-        } catch (error) {
-            console.error('Recipe loading error:', error);
-            showToast("Error loading recipe!");
+        } else {
+                console.error(
+                    "AIManager or AIManager.loadRecipe is not available. Cannot use recipe."
+                );
+                showToast("Recipe loading functionality is currently unavailable.");
         }
-    }
+
+            try {
+                await fetchWithSession(`${API_BASE}/reset`, { method: "DELETE" });
+                const response = await fetchWithSession(`${API_BASE}/getrecipe?name=${encodeURIComponent(recipeName)}`);
+                const recipe = await response.json();
+
+                let addedCount = 0;
+                let skippedIngredients = [];
+                for (const ingredient of recipe.ingredients) {
+                    try {
+                        const res = await fetchWithSession(`${API_BASE}/addingredient`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                name: ingredient.name,
+                                grams: ingredient.grams
+                            })
+                        });
+                        if (res.ok) {
+                            addedCount++;
+                        } else {
+                            skippedIngredients.push(ingredient.name);
+                        }
+                    } catch (err) {
+                        console.error('Error adding ingredient:', err);
+                        skippedIngredients.push(ingredient.name);
+                    }
+                }
+
+                if (addedCount > 0) {
+                    localStorage.setItem('currentRecipe', `📗 ${recipeName}`);
+                    const toasts = JSON.parse(localStorage.getItem('toasts') || '[]');
+
+                    if (skippedIngredients.length > 0) {
+                        toasts.push({ message: `Added ${addedCount} ingredients. Skipped: ${skippedIngredients.slice(0,2).join(', ')}${skippedIngredients.length > 2 ? '...' : ''}`, timestamp: Date.now() });
+                    }
+                    else {
+                        toasts.push({ message: `Added ${addedCount} ingredients.`, timestamp: Date.now() });
+                    }
+                            
+                    localStorage.setItem('toasts', JSON.stringify(toasts));
+                    window.location.href = 'index.html';
+                } else {
+                    showToast('No ingredients could be added');
+                }
+            } catch (error) {
+                const toasts = JSON.parse(localStorage.getItem('toasts') || '[]');
+                toasts.push({ message: 'No ingredients could be added', timestamp: Date.now() });
+                localStorage.setItem('toasts', JSON.stringify(toasts));
+                window.location.href = 'index.html';
+            }
+        }
 }
 
 // Initialize on DOM load

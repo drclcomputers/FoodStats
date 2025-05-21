@@ -41,19 +41,24 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 		http.NotFound(w, r)
 	}).Methods(http.MethodGet)
 
-	r.HandleFunc("/api/health", HealthCheckHandler)
-	r.HandleFunc("/api/addingredient", handler.AddIngredientHandler)
-	r.HandleFunc("/api/calculate", handler.CalculateHandler)
-	r.HandleFunc("/api/reset", handler.ResetHandler)
-	r.HandleFunc("/api/ingredients", handler.ListIngredientsHandler)
-	r.HandleFunc("/api/deleteingredient", handler.DeleteIngredientHandler)
-	r.HandleFunc("/api/suggestions", handler.SuggestionHandler)
-	r.HandleFunc("/api/listrecipes", handler.ListRecipesHandler)
-	r.HandleFunc("/api/getrecipe", handler.GetRecipeHandler)
-	r.HandleFunc("/api/addrecipe", handler.AddRecipeHandler)
-	r.HandleFunc("/api/suggestrecipes", handler.SuggestRecipesHandler)
-	r.HandleFunc("/api/analyzenutrition", handler.AnalyzeNutritionHandler)
-	r.HandleFunc("/api/smartrecommendations", handler.SmartRecommendationsHandler)
+	apiRouter := r.PathPrefix("/api").Subrouter()
+
+	apiRouter.HandleFunc("/health", HealthCheckHandler).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/addingredient", handler.AddIngredientHandler).Methods(http.MethodPost, http.MethodOptions)
+	apiRouter.HandleFunc("/calculate", handler.CalculateHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/reset", handler.ResetHandler).Methods(http.MethodDelete, http.MethodOptions)
+	apiRouter.HandleFunc("/ingredients", handler.ListIngredientsHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/deleteingredient", handler.DeleteIngredientHandler).Methods(http.MethodDelete, http.MethodOptions)
+	apiRouter.HandleFunc("/suggestions", handler.SuggestionHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/listrecipes", handler.ListRecipesHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/getrecipe", handler.GetRecipeHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/addrecipe", handler.AddRecipeHandler).Methods(http.MethodPost, http.MethodOptions)
+	apiRouter.HandleFunc("/suggestrecipes", handler.SuggestRecipesHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/analyzenutrition", handler.AnalyzeNutritionHandler).Methods(http.MethodPost, http.MethodOptions)
+	apiRouter.HandleFunc("/smartrecommendations", handler.SmartRecommendationsHandler).Methods(http.MethodPost, http.MethodOptions)
+	apiRouter.HandleFunc("/saveprofile", handler.SaveProfileHandler).Methods(http.MethodPost, http.MethodOptions)
+	apiRouter.HandleFunc("/getprofile", handler.GetProfileHandler).Methods(http.MethodGet, http.MethodOptions)
+	apiRouter.HandleFunc("/resetprofile", handler.ResetProfileHandler).Methods(http.MethodDelete, http.MethodOptions)
 
 	return r
 }
@@ -108,7 +113,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	status := map[string]interface{}{
 		"status":    "ok",
 		"timestamp": time.Now().UTC(),
-		"version":   "3.0.0",
+		"version":   "4.0.0",
 		"services":  make(map[string]string),
 	}
 

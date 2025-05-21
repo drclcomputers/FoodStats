@@ -1,3 +1,8 @@
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
 package handlers
 
 import (
@@ -23,14 +28,24 @@ func SmartRecommendationsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recommendations, err := aiService.GetRecipeRecommendations(req.Ingredients)
-	if err != nil {
-		http.Error(w, "Failed to get recommendations: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(recommendations)
+
+	if len(req.Ingredients) == 0 {
+		err := json.NewEncoder(w).Encode("Failed to get recommendations!")
+		if err != nil {
+			http.Error(w, "Failed to get recommendations: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+
+		recommendations, err := aiService.GetRecipeRecommendations(req.Ingredients)
+		if err != nil {
+			http.Error(w, "Failed to get recommendations: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(recommendations)
+	}
 }
 
 func AnalyzeNutritionHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +60,18 @@ func AnalyzeNutritionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	analysis, err := aiService.AnalyzeNutrition(ingredients)
+	sessionID := config.GetSessionID(w, r)
+	profile, hasProfile := userProfiles[sessionID]
+
+	var analysis *config.NutritionAnalysis
+	var err error
+
+	if hasProfile {
+		analysis, err = aiService.AnalyzeNutrition(ingredients, &profile)
+	} else {
+		analysis, err = aiService.AnalyzeNutrition(ingredients, nil)
+	}
+
 	if err != nil {
 		var totalCalories, totalProteins, totalCarbs, totalFats, totalFiber float64
 		for _, ing := range ingredients {
@@ -70,10 +96,18 @@ func AnalyzeNutritionHandler(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		err = json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			http.Error(w, "Failed to finish analysis: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(analysis)
+	err = json.NewEncoder(w).Encode(analysis)
+	if err != nil {
+		http.Error(w, "Failed to get analysis: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

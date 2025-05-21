@@ -293,12 +293,35 @@ body {
     }
 }
 
+@keyframes fadeOutY {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+    }
+}
+
+@keyframes fadeInY {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 #aiAnalysisSection.hiding {
-    animation: fadeOut 0.8s ease forwards;
+    animation: fadeOutY 0.8s ease forwards;
 }
 
 #aiAnalysisSection {
-    animation: fadeIn 0.8s ease;
+    animation: fadeInY 0.8s ease;
 }
 
 .recommendations-grid article {

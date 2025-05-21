@@ -5,6 +5,20 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 */
 
+:root {
+    --primary-color: #2b6777;
+    --secondary-color: #52ab98;
+    --background-color: #f0f4f8;
+    --text-color: #222;
+    --font-family: 'Inter', Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-large: 2.5rem;
+    --font-size-medium: 1.7rem;
+    --font-size-small: 1rem;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
 .delete-btn {
     background: #e63946;
     color: white;
@@ -66,14 +80,88 @@ button:hover,
 }
 
 .toast {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background: #333;
     color: white;
-    padding: 15px 30px;
+    padding: 15px 20px;
     border-radius: 8px;
     font-size: 1.1em;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: var(--box-shadow);
     animation: toastIn 0.3s ease;
     max-width: 300px;
     word-wrap: break-word;
 }
 
+.toast-content {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.toast-close {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.toast-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* === Healthy Recipes Filters === */
+.recipe-filter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2em;
+    margin: 1.5em auto 1em auto;
+    padding: 1em 1.5em;
+    background: #f7fafc;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(43,103,119,0.07);
+    max-width: 600px;
+}
+
+#ingredientFilterInput {
+    padding: 0.7em 1em;
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    font-size: 1rem;
+    min-width: 200px;
+    background: #fff;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+#ingredientFilterInput:focus {
+    border-color: #52ab98;
+    box-shadow: 0 2px 8px rgba(82,171,152,0.13);
+    outline: none;
+}
+
+#veganFilterCheckbox {
+    accent-color: #52ab98;
+    width: 1.1em;
+    height: 1.1em;
+    margin-right: 0.4em;
+}
+
+.recipe-filter label {
+    font-size: 1rem;
+    color: #2b6777;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}

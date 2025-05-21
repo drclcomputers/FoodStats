@@ -5,7 +5,25 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 */
 
-@media (max-width: 900px) {
+:root {
+    --breakpoint-tablet: 900px;
+    --breakpoint-mobile: 600px;
+
+    --mobile-padding-sm: 0.5rem;
+    --mobile-padding-md: 0.7rem;
+    --mobile-padding-lg: 1rem;
+
+    --mobile-font-sm: 0.9rem;
+    --mobile-font-base: 0.95rem;
+    --mobile-font-md: 1rem;
+    --mobile-font-lg: 1.1rem;
+
+    --mobile-gap-sm: 0.4rem;
+    --mobile-gap-md: 0.7rem;
+    --mobile-gap-lg: 1rem;
+}
+
+@media (max-width: var(--breakpoint-tablet)) {
     .container {
         width: 99%;
         padding: 0.5rem 0 5rem 0;
@@ -25,7 +43,7 @@
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: var(--breakpoint-mobile)) {
     .container {
         width: 100vw;
         padding: 0.2rem 0 4rem 0;

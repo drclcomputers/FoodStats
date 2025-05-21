@@ -1,3 +1,8 @@
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
 package handlers
 
 import (
@@ -26,7 +31,7 @@ func SuggestionHandler(w http.ResponseWriter, r *http.Request) {
 
 	var suggestions []string
 	for _, ing := range database.GetAllIngredients() {
-		if strings.HasPrefix(strings.ToLower(ing.Name), query) {
+		if strings.Contains(strings.ToLower(ing.Name), query) {
 			suggestions = append(suggestions, ing.Name)
 		}
 	}

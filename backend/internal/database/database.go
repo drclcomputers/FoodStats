@@ -154,8 +154,8 @@ func GetAllIngredients() []config.Ingredient {
 
 func GetRecipe(name string) (config.Recipe, error) {
 	var recipe config.Recipe
-	err := DB.QueryRow("SELECT id, name, description FROM recipes WHERE name = ?", name).
-		Scan(&recipe.ID, &recipe.Name, &recipe.Description)
+	err := DB.QueryRow("SELECT id, name, description, vegan FROM recipes WHERE name = ?", name).
+		Scan(&recipe.ID, &recipe.Name, &recipe.Description, &recipe.Vegan)
 	if err != nil {
 		return recipe, err
 	}
@@ -178,11 +178,11 @@ func GetRecipe(name string) (config.Recipe, error) {
 }
 
 func AddRecipe(name, description string, ingredients []config.TemplateIngredient) error {
-	if !validateIngredientName(name) {
+	if !ValidateIngredientName(name) {
 		return fmt.Errorf("invalid recipe name")
 	}
 
-	sanitizedDesc := sanitizeDescription(description)
+	sanitizedDesc := SanitizeDescription(description)
 	if len(sanitizedDesc) > 500 {
 		return fmt.Errorf("description too long")
 	}
@@ -216,10 +216,10 @@ func AddRecipe(name, description string, ingredients []config.TemplateIngredient
 	defer ingredientStmt.Close()
 
 	for _, ing := range ingredients {
-		if !validateIngredientName(ing.Name) {
+		if !ValidateIngredientName(ing.Name) {
 			return fmt.Errorf("invalid ingredient name: %s", ing.Name)
 		}
-		if !validateGrams(ing.Grams) {
+		if !ValidateGrams(ing.Grams) {
 			return fmt.Errorf("invalid grams amount for %s", ing.Name)
 		}
 
@@ -234,7 +234,7 @@ func AddRecipe(name, description string, ingredients []config.TemplateIngredient
 
 func ListRecipes() ([]config.Recipe, error) {
 	rows, err := DB.Query(`
-        SELECT r.id, r.name, r.description 
+        SELECT r.id, r.name, r.description, r.vegan
         FROM recipes r 
         ORDER BY r.name ASC`)
 	if err != nil {
@@ -245,7 +245,7 @@ func ListRecipes() ([]config.Recipe, error) {
 	var recipes []config.Recipe
 	for rows.Next() {
 		var r config.Recipe
-		if err := rows.Scan(&r.ID, &r.Name, &r.Description); err != nil {
+		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.Vegan); err != nil {
 			log.Printf("Error scanning recipe: %v", err)
 			continue
 		}
@@ -255,35 +255,70 @@ func ListRecipes() ([]config.Recipe, error) {
 			log.Printf("Error getting ingredients for recipe %s: %v", r.Name, err)
 			continue
 		}
-		var converted []config.Ingredient
+		//r.Ingredients = ingredients
+
+		var ingredientList []config.Ingredient
 		for _, ing := range ingredients {
-			converted = append(converted, config.Ingredient{
-				TemplateIngredient: ing,
+			ingredientList = append(ingredientList, config.Ingredient{
+				TemplateIngredient: ing.TemplateIngredient,
 			})
 		}
-		r.Ingredients = converted
+		r.Ingredients = ingredientList
+
 		recipes = append(recipes, r)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating recipe rows: %w", err)
 	}
 	return recipes, nil
 }
 
-func getRecipeIngredients(recipeID int) ([]config.TemplateIngredient, error) {
-	rows, err := DB.Query(`
-        SELECT ingredient_name, grams 
-        FROM recipe_ingredients 
-        WHERE recipe_id = ?`, recipeID)
+func getRecipeIngredients(recipeID int) ([]config.Ingredient, error) {
+	query := `
+        SELECT 
+            ri.ingredient_name, 
+            ri.grams, 
+            i.CALORIES, 
+            i.PROTEINS, 
+            i.CARBS, 
+            i.FATS, 
+            i.FIBER 
+        FROM recipe_ingredients ri
+        JOIN ingredients i ON LOWER(ri.ingredient_name) = LOWER(i.NAME)
+        WHERE ri.recipe_id = ?`
+
+	rows, err := DB.Query(query, recipeID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("querying recipe ingredients failed: %w", err)
 	}
 	defer rows.Close()
 
-	var ingredients []config.TemplateIngredient
+	var ingredients []config.Ingredient
 	for rows.Next() {
-		var ing config.TemplateIngredient
-		if err := rows.Scan(&ing.Name, &ing.Grams); err != nil {
-			return nil, err
+		var ingName string
+		var ingGrams float64
+		var baseCalories, baseProteins, baseCarbs, baseFats, baseFiber float64 // Per 100g
+
+		if err := rows.Scan(&ingName, &ingGrams, &baseCalories, &baseProteins, &baseCarbs, &baseFats, &baseFiber); err != nil {
+			return nil, fmt.Errorf("scanning recipe ingredient failed: %w", err)
 		}
-		ingredients = append(ingredients, ing)
+
+		ingredients = append(ingredients, config.Ingredient{
+			TemplateIngredient: config.TemplateIngredient{
+				Name:  ingName,
+				Grams: ingGrams,
+			},
+			NutritionalInfo: config.NutritionalInfo{
+				Calories: ingGrams * baseCalories / 100,
+				Proteins: ingGrams * baseProteins / 100,
+				Carbs:    ingGrams * baseCarbs / 100,
+				Fats:     ingGrams * baseFats / 100,
+				Fiber:    ingGrams * baseFiber / 100,
+			},
+		})
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error for recipe ingredients: %w", err)
 	}
 	return ingredients, nil
 }

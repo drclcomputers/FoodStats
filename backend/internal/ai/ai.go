@@ -1,3 +1,8 @@
+// Copyright (c) 2025 @drclcomputers. All rights reserved.
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
 package ai
 
 import (
@@ -41,7 +46,7 @@ func NewAIService() *AIService {
 
 func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Recipe, error) {
 	cmd := exec.Command(s.pythonPath,
-		filepath.Join(s.mlsPath, "__init__.py"),
+		filepath.Join(s.mlsPath, "recommend.py"),
 		"--ingredients", strings.Join(ingredients, ","))
 
 	output, err := cmd.CombinedOutput()
@@ -57,7 +62,7 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 	return recipes, nil
 }
 
-func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient) (*config.NutritionAnalysis, error) {
+func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *config.UserProfile) (*config.NutritionAnalysis, error) {
 	data, err := json.Marshal(ingredients)
 	if err != nil {
 		return nil, err
@@ -66,9 +71,23 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient) (*config.N
 	scriptPath := filepath.Join(s.mlsPath, "analyzer.py")
 	log.Printf("Running Python script at: %s", scriptPath)
 
-	cmd := exec.Command(s.pythonPath,
-		scriptPath,
-		"--data", string(data))
+	var cmd *exec.Cmd
+
+	if profile != nil {
+		profileData, err := json.Marshal(profile)
+		if err != nil {
+			return nil, err
+		}
+
+		cmd = exec.Command(s.pythonPath,
+			scriptPath,
+			"--data", string(data),
+			"--user-profile", string(profileData))
+	} else {
+		cmd = exec.Command(s.pythonPath,
+			scriptPath,
+			"--data", string(data))
+	}
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -82,8 +101,6 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient) (*config.N
 	if err := json.Unmarshal(output, &analysis); err != nil {
 		return nil, fmt.Errorf("failed to parse analysis output: %v", err)
 	}
-
-	print(output)
 
 	return &analysis, nil
 }

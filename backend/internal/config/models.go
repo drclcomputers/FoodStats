@@ -29,10 +29,21 @@ type Recipe struct {
 	Description string       `json:"description,omitempty"`
 	Ingredients []Ingredient `json:"ingredients,omitempty"`
 	Similarity  float64      `json:"similarity,omitempty"`
+	Vegan       bool         `json:"vegan,omitempty"`
 }
 
 type NutritionAnalysis struct {
 	HealthScore     float64            `json:"health_score"`
 	Recommendations []string           `json:"recommendations"`
 	NutrientBalance map[string]float64 `json:"nutrient_balance"`
+}
+
+type UserProfile struct {
+	Age                 int      `json:"age"`
+	Gender              string   `json:"gender"`
+	Weight              float64  `json:"weight"`
+	Height              float64  `json:"height"`
+	ActivityLevel       string   `json:"activityLevel"`
+	Goal                string   `json:"goal"`
+	DietaryRestrictions []string `json:"dietary_restrictions"`
 }

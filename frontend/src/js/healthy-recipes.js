@@ -5,6 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const recipeList = document.getElementById('recipeList');
+    const filterInput = document.getElementById('recipeFilterInput');
     let allRecipes = [];
 
     async function fetchRecipes() {
@@ -21,14 +22,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isVegan(recipe) {
+        return recipe.vegan === true;
+    }
+
+    function applyFiltersAndDisplay() {
+        let filtered = allRecipes;
+
+        const ingredientQuery = ingredientFilterInput ? ingredientFilterInput.value.trim().toLowerCase() : '';
+        if (ingredientQuery) {
+            filtered = filtered.filter(recipe =>
+                (recipe.ingredients || []).some(ing =>
+                    ing.name.toLowerCase().includes(ingredientQuery)
+                )
+            );
+        }
+
+        if (veganFilterCheckbox && veganFilterCheckbox.checked) {
+            filtered = filtered.filter(isVegan);
+        }
+
+        displayRecipes(filtered);
+    }
+
+    if (ingredientFilterInput) {
+        ingredientFilterInput.addEventListener('input', applyFiltersAndDisplay);
+    }
+    if (veganFilterCheckbox) {
+        veganFilterCheckbox.addEventListener('change', applyFiltersAndDisplay);
+    }
+
     function checkCardVisibility() {
-        const cards = document.querySelectorAll('.recipe-card:not(.visible)');
+        const cards = document.querySelectorAll(".recipe-card:not(.visible)");
+        if (cards.length === 0) {
+            if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
+            return;
+        }
         const triggerBottom = window.innerHeight * 0.8;
 
-        cards.forEach(card => {
+        cards.forEach((card) => {
             const cardTop = card.getBoundingClientRect().top;
             if (cardTop < triggerBottom) {
-                card.classList.add('visible');
+            card.classList.add("visible");
             }
         });
     }
@@ -37,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recipeList.innerHTML = '';
 
         if (recipes.length === 0) {
-            recipeList.innerHTML = '<p>No recipes found.</p>';
+            recipeList.innerHTML = '<p id="RecipesNotFound">No recipes found.</p>';
             return;
         }
 
@@ -62,9 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         ).join('')}
                     </ul>
                 </div>
-                <button class="use-recipe-btn" data-recipe="${recipe.name}">
-                    Use This Recipe
-                </button>
+                <button class="use-recipe-btn" data-recipe="${recipe.name.replace(
+                /"/g,
+                "&quot;"
+                )}">Use Recipe</button>
             `;
 
             article.querySelector('.use-recipe-btn').addEventListener('click', async (e) => {
@@ -85,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     let addedCount = 0;
                     let skippedIngredients = [];
 
-                    // Try to add each ingredient, but continue if one fails
                     for (const ingredient of recipeDetails.ingredients) {
                         try {
                             const ingResponse = await fetchWithSession(`${API_BASE}/addingredient`, {
@@ -108,20 +143,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (addedCount > 0) {
-                        // Fix: Use backticks for template literal, don't redeclare recipeName
                         localStorage.setItem('currentRecipe', `📗 ${recipeName}`);
-                        
+                        const toasts = JSON.parse(localStorage.getItem('toasts') || '[]');
+
                         if (skippedIngredients.length > 0) {
-                            showToast(`Added ${addedCount} ingredients. Skipped: ${skippedIngredients.slice(0,2).join(', ')}${skippedIngredients.length > 2 ? '...' : ''}`);
+                             toasts.push({ message: `Added ${addedCount} ingredients. Skipped: ${skippedIngredients.slice(0,2).join(', ')}${skippedIngredients.length > 2 ? '...' : ''}`, timestamp: Date.now() });
                         }
+                        else {
+                            toasts.push({ message: `Added ${addedCount} ingredients.`, timestamp: Date.now() });
+                        }
+                        
+                        localStorage.setItem('toasts', JSON.stringify(toasts));
                         window.location.href = 'index.html';
                     } else {
                         showToast('No ingredients could be added');
                     }
                 }
                 catch (error) {
-                    console.error('Recipe loading error:', error);
-                    showToast("Error loading recipe!");
+                    const toasts = JSON.parse(localStorage.getItem('toasts') || '[]');
+                    toasts.push({ message: 'No ingredients could be added', timestamp: Date.now() });
+                    localStorage.setItem('toasts', JSON.stringify(toasts));
+                    window.location.href = 'index.html';
                 } finally {
                     btn.disabled = false;
                     btn.textContent = 'Use This Recipe';
@@ -138,6 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         recipeList.appendChild(grid);
+
+
+        scrollHandler = () => {
+          requestAnimationFrame(checkCardVisibility);
+        };
+
+        setTimeout(() => {
+          checkCardVisibility();
+          window.addEventListener("scroll", scrollHandler);
+        }, 100); 
     }
 
     fetchRecipes();

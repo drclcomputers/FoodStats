@@ -3,19 +3,38 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
+const MAIN_SELECTORS = {
+    INGREDIENT_FORM: "ingredientForm",
+    NAME_INPUT: "name",
+    GRAMS_INPUT: "grams",
+    INGREDIENT_LIST: "ingredientList",
+    TOTAL_OUTPUT: "totalOutput",
+    CALCULATE_BTN: "calculateBtn",
+    RESET_BTN: "resetBtn",
+    EXPORT_BTN: "exportBtn",
+    IMPORT_BTN: "importBtn",
+    IMPORT_INPUT: "importInput",
+    AI_ANALYSIS_SECTION: "aiAnalysisSection",
+    AI_SMART_SUGGESTIONS: "aiSmartSuggestions",
+    CURRENT_RECIPE: "currentRecipe",
+    RECIPE_SOURCE: "recipeSource",
+    RECIPE_SEARCH_INPUT: "recipeSearchInput",
+    RECIPE_SUGGESTIONS_SECTION: "recipeSuggestionsSection",
+};
+
 class IngredientManager {
     constructor() {
-        this.form = document.getElementById("ingredientForm");
-        this.nameInput = document.getElementById("name");
-        this.gramsInput = document.getElementById("grams");
-        this.ingredientList = document.getElementById("ingredientList");
-        this.totalOutput = document.getElementById("totalOutput");
+        this.form = document.getElementById(MAIN_SELECTORS.INGREDIENT_FORM);
+        this.nameInput = document.getElementById(MAIN_SELECTORS.NAME_INPUT);
+        this.gramsInput = document.getElementById(MAIN_SELECTORS.GRAMS_INPUT);
+        this.ingredientList = document.getElementById(MAIN_SELECTORS.INGREDIENT_LIST);
+        this.totalOutput = document.getElementById(MAIN_SELECTORS.TOTAL_OUTPUT);
         
-        this.calculateBtn = document.getElementById("calculateBtn");
-        this.resetBtn = document.getElementById("resetBtn");
-        this.exportBtn = document.getElementById("exportBtn");
-        this.importBtn = document.getElementById("importBtn");
-        this.importInput = document.getElementById("importInput");
+        this.calculateBtn = document.getElementById(MAIN_SELECTORS.CALCULATE_BTN);
+        this.resetBtn = document.getElementById(MAIN_SELECTORS.RESET_BTN);
+        this.exportBtn = document.getElementById(MAIN_SELECTORS.EXPORT_BTN);
+        this.importBtn = document.getElementById(MAIN_SELECTORS.IMPORT_BTN);
+        this.importInput = document.getElementById(MAIN_SELECTORS.IMPORT_INPUT);
 
         this.initializeEventListeners();
     }
@@ -69,14 +88,22 @@ class IngredientManager {
             const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
             const blob = new Blob([JSON.stringify(ingredients, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
+            
             const a = document.createElement('a');
             a.href = url;
             a.download = 'ingredients.json';
+            a.style.display = 'none';
+            
+            a.addEventListener('click', () => {
+                setTimeout(() => {
+                    showToast('Ingredients exported successfully');
+                    URL.revokeObjectURL(url);
+                }, 1000);
+            });
+            
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Ingredients exported successfully');
         } catch (error) {
             showToast('Failed to export ingredients');
             console.error('Export error:', error);
@@ -91,8 +118,9 @@ class IngredientManager {
             const content = await file.text();
             const ingredients = JSON.parse(content);
 
-            // First reset current ingredients
-            await fetchWithSession(`${API_BASE}/reset`, { method: 'DELETE' });
+            await this.resetIngredients();
+
+            const fileName = file.name.replace(/\.json$/i, '');
 
             let addedCount = 0;
             for (const ing of ingredients) {
@@ -112,8 +140,13 @@ class IngredientManager {
             }
 
             await this.fetchIngredients();
-            showToast(`Imported ${addedCount} ingredients`);
-            e.target.value = ''; // Reset file input
+
+            const recipeName = `📥 ${fileName}`;
+            localStorage.setItem(MAIN_SELECTORS.CURRENT_RECIPE, recipeName);
+            this.updateRecipeSource(recipeName);
+            
+            showToast(`Imported ${addedCount} ingredients from "${fileName}"`);
+            e.target.value = '';
         } catch (error) {
             showToast('Failed to import ingredients');
             console.error('Import error:', error);
@@ -121,8 +154,8 @@ class IngredientManager {
     }
 
     async showAiSuggestions() {
-        const aiSection = document.getElementById('aiAnalysisSection');
-        const container = document.getElementById('aiSmartSuggestions');
+        const aiSection = document.getElementById(AI_ANALYSIS_SECTION);
+        const container = document.getElementById(AI_SMART_SUGGESTIONS);
         
         aiSection.style.display = 'block';
         container.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div>Loading suggestions...</div>';
@@ -212,15 +245,15 @@ class IngredientManager {
     }
 
     async fetchIngredients() {
-        console.log(localStorage.getItem('currentRecipe'));
+        console.log(localStorage.getItem(MAIN_SELECTORS.CURRENT_RECIPE));
         try {
             const response = await fetchWithSession(`${API_BASE}/ingredients`);
             const data = await response.json();
             
-            const list = document.getElementById("ingredientList");
+            const list = document.getElementById(MAIN_SELECTORS.INGREDIENT_LIST);
             list.innerHTML = "";
 
-            const savedRecipe = localStorage.getItem('currentRecipe');
+            const savedRecipe = localStorage.getItem(MAIN_SELECTORS.CURRENT_RECIPE);
             this.updateRecipeSource(savedRecipe || '');
 
             if (!data || data.length === 0) {
@@ -228,7 +261,7 @@ class IngredientManager {
                 emptyMessage.className = "empty-message";
                 emptyMessage.textContent = "No ingredients added yet";
                 list.appendChild(emptyMessage);
-                document.getElementById("totalOutput").textContent = "Click \"Calculate\" to see total nutrition.";
+                document.getElementById(MAIN_SELECTORS.TOTAL_OUTPUT).textContent = "Click \"Calculate\" to see total nutrition.";
                 return;
             }
 
@@ -257,37 +290,54 @@ class IngredientManager {
     }
 
     updateRecipeSource(source) {
-        const sourceElement = document.getElementById('recipeSource');
+        const sourceElement = document.getElementById(MAIN_SELECTORS.RECIPE_SOURCE);
         if (sourceElement) {
             sourceElement.innerHTML = source ? ` - <span style="color: #2b6777">${source}</span>` : '';
         }
     }
 
     async deleteIngredient(name) {
-        const item = document.querySelector(`#ingredientList li[data-name="${name}"]`);
-        item.classList.add('removing');
-
-        setTimeout(async () => {
-        try {
-            const response = await fetchWithSession(`${API_BASE}/deleteingredient?name=${encodeURIComponent(name)}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('Failed to delete ingredient');
-            await this.fetchIngredients();
-
-            // Only clear recipe source if ingredient list is now empty
-            const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
-            if (!ingredients || ingredients.length === 0) {
-                this.updateRecipeSource('');
-                localStorage.setItem('currentRecipe', '');
+            const item = this.ingredientList.querySelector(`li[data-name="${name}"]`);
+            if (!item) {
+                console.warn(`Item to delete not found: ${name}`);
+                return;
             }
-            showToast(`Removed ${name}`);
-        } catch (error) {
-            console.error('Delete error:', error);
-            showToast('Failed to delete ingredient');
-            item.classList.remove('removing');
+
+            item.classList.add("removing");
+
+            const onAnimationEnd = async () => {
+            item.removeEventListener("animationend", onAnimationEnd);
+            try {
+                const response = await fetchWithSession(
+                `${API_BASE}/deleteingredient?name=${encodeURIComponent(name)}`,{method: "DELETE",});
+                if (!response.ok) throw new Error("Failed to delete ingredient from server");
+
+                await this.fetchIngredients();
+
+                const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then((r) => r.json());
+                if (!ingredients || ingredients.length === 0) {
+                    this.updateRecipeSource("");
+                    localStorage.setItem("currentRecipe", "");
+
+                }
+                showToast(`Removed ${name}`);
+            } catch (error) {
+                console.error("Delete error:", error);
+                showToast(`Failed to delete ${name}.`);
+                item.classList.remove("removing");
+            }
+        };
+
+        item.addEventListener("animationend", onAnimationEnd, { once: true });
+
+        setTimeout(() => {
+        if (item.classList.contains("removing")) {
+            console.warn(
+            `Animationend event for ingredient ${name} did not fire. Processing deletion.`
+            );
+            onAnimationEnd();
         }
-    }, 300);
+        }, 500);
     }
 
     async calculateTotal() {
@@ -372,13 +422,13 @@ class IngredientManager {
         await this.fetchIngredients();
         this.updateRecipeSource('');
         showToast("All ingredients cleared");
-        localStorage.setItem('currentRecipe', '');
+        localStorage.setItem(MAIN_SELECTORS.CURRENT_RECIPE, '');
         
         // Reset UI elements
-        const recipeSearchInput = document.getElementById("recipeSearchInput");
+        const recipeSearchInput = document.getElementById(MAIN_SELECTORS.RECIPE_SEARCH_INPUT);
         if (recipeSearchInput) recipeSearchInput.value = "";
         
-        const suggestionsSection = document.getElementById("recipeSuggestionsSection");
+        const suggestionsSection = document.getElementById(MAIN_SELECTORS.RECIPE_SUGGESTIONS_SECTION);
         if (suggestionsSection) suggestionsSection.style.display = "none";
         
         if (this.totalOutput) {
@@ -386,7 +436,7 @@ class IngredientManager {
         }
 
         // Hide AI section if visible
-        const aiSection = document.getElementById('aiAnalysisSection');
+        const aiSection = document.getElementById(MAIN_SELECTORS.AI_ANALYSIS_SECTION);
         if (aiSection && aiSection.style.display === 'block') {
             aiSection.classList.add('hiding');
             setTimeout(() => {
@@ -432,4 +482,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const manager = new IngredientManager();
     manager.fetchIngredients();
 });
+
+if (
+    window.aiManager &&
+    typeof window.aiManager.hideSection === "function"
+) {
+    const aiSection = document.getElementById(
+        MAIN_SELECTORS.AI_ANALYSIS_SECTION
+    );
+    if (aiSection && aiSection.style.display !== "none") {
+        window.aiManager.hideSection();
+    }
+} else {
+    console.warn(
+        "AIManager not found or hideSection method is missing. AI section cannot be hidden programmatically by IngredientManager."
+    );
+    const aiSection = document.getElementById(
+        MAIN_SELECTORS.AI_ANALYSIS_SECTION
+    );
+    if (aiSection && aiSection.style.display !== "none") {
+        aiSection.style.display = "none";
+    }
+}
 
