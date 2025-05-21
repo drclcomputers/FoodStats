@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -38,15 +39,53 @@ func detectPythonExecutable() string {
 }
 
 func NewAIService() *AIService {
+	isRender := os.Getenv("RENDER") == "true"
+
+	var mlsPath string
+	if isRender {
+		mlsPath = filepath.Join("internal", "mls")
+
+		if _, err := os.Stat(mlsPath); os.IsNotExist(err) {
+			renderPath := filepath.Join("/opt", "render", "project", "src", "internal", "mls")
+			if _, err := os.Stat(renderPath); err == nil {
+				mlsPath = renderPath
+			}
+		}
+	} else {
+		mlsPath = filepath.Join("internal", "mls")
+	}
+
 	return &AIService{
 		pythonPath: detectPythonExecutable(),
-		mlsPath:    filepath.Join("internal", "mls"),
+		mlsPath:    mlsPath,
 	}
 }
 
 func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Recipe, error) {
+	recommendPath := filepath.Join(s.mlsPath, "recommend.py")
+	log.Printf("Looking for Python recommendation script at: %s", recommendPath)
+
+	if _, err := os.Stat(recommendPath); os.IsNotExist(err) {
+		log.Printf("ERROR: Python recommendation script not found at %s", recommendPath)
+		possiblePaths := []string{
+			"recommend.py",
+			"./internal/mls/recommend.py",
+			"../internal/mls/recommend.py",
+			"/opt/render/project/src/internal/mls/recommend.py",
+		}
+
+		for _, path := range possiblePaths {
+			log.Printf("Checking alternative path: %s", path)
+			if _, err := os.Stat(path); err == nil {
+				recommendPath = path
+				log.Printf("Found recommendation script at: %s", recommendPath)
+				break
+			}
+		}
+	}
+
 	cmd := exec.Command(s.pythonPath,
-		filepath.Join(s.mlsPath, "recommend.py"),
+		recommendPath,
 		"--ingredients", strings.Join(ingredients, ","))
 
 	output, err := cmd.CombinedOutput()
@@ -69,7 +108,26 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 	}
 
 	scriptPath := filepath.Join(s.mlsPath, "analyzer.py")
-	log.Printf("Running Python script at: %s", scriptPath)
+	log.Printf("Looking for Python script at: %s", scriptPath)
+
+	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+		log.Printf("ERROR: Python script not found at %s", scriptPath)
+		possiblePaths := []string{
+			"analyzer.py",
+			"./internal/mls/analyzer.py",
+			"../internal/mls/analyzer.py",
+			"/opt/render/project/src/internal/mls/analyzer.py",
+		}
+
+		for _, path := range possiblePaths {
+			log.Printf("Checking alternative path: %s", path)
+			if _, err := os.Stat(path); err == nil {
+				scriptPath = path
+				log.Printf("Found script at: %s", scriptPath)
+				break
+			}
+		}
+	}
 
 	var cmd *exec.Cmd
 
