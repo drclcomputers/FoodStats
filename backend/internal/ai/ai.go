@@ -131,7 +131,7 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 		}
 	}
 
-	s.pythonPath = "/usr/local/bin/python3"
+	s.pythonPath = detectPythonExecutable()
 
 	cmd := exec.Command(s.pythonPath,
 		recommendPath,
@@ -203,7 +203,7 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 
 	var cmd *exec.Cmd
 
-	s.pythonPath = "/usr/local/bin/python3"
+	s.pythonPath = detectPythonExecutable()
 
 	if profile != nil {
 		profileData, err := json.Marshal(profile)
