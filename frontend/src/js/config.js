@@ -31,19 +31,22 @@ const SESSION_ID = (() => {
 
 async function fetchWithSession(path, options = {}) {
     try {
-        const isHealthy = await checkServerHealth();
-        if (!isHealthy) {
-        showToast("Server health check failed. Please try again later.");
-        throw new Error("Server is not healthy. Health check failed.");
+        const isRender = window.location.hostname.includes('.onrender.com');
+        if (!isRender) {
+            const isHealthy = await checkServerHealth();
+            if (!isHealthy) {
+                showToast("Server health check failed. Please try again later.");
+                throw new Error("Server is not healthy. Health check failed.");
+            }
         }
 
         options.headers = {
-        ...options.headers,
-        "X-Session-ID": SESSION_ID,
-        "Content-Type": "application/json",
+            ...options.headers,
+            "X-Session-ID": SESSION_ID,
+            "Content-Type": "application/json",
         };
 
-        options.credentials = "same-origin";
+        options.credentials = "include";
 
         const response = await fetch(path, options);
         if (!response.ok) {
