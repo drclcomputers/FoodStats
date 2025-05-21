@@ -62,6 +62,8 @@ func NewAIService() *AIService {
 }
 
 func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Recipe, error) {
+	exec.Command("ls")
+
 	recommendPath := filepath.Join(s.mlsPath, "recommend.py")
 	log.Printf("Looking for Python recommendation script at: %s", recommendPath)
 
@@ -102,6 +104,8 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 }
 
 func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *config.UserProfile) (*config.NutritionAnalysis, error) {
+	exec.Command("ls")
+
 	data, err := json.Marshal(ingredients)
 	if err != nil {
 		return nil, err
