@@ -46,26 +46,24 @@ async function fetchWithSession(path, options = {}) {
             "Content-Type": "application/json",
         };
 
-        options.credentials = "include";
+        if (isRender) {
+            options.credentials = "omit";
+        } else {
+            options.credentials = "include";
+        }
 
         const response = await fetch(path, options);
         if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const message =
-            errorData?.message || `HTTP error! Status: ${response.status}`;
-        showToast(`Request failed: ${message}`);
-        throw new Error(
-            `HTTP error! status: ${response.status}, message: ${message}`
-        );
+            const errorData = await response.json().catch(() => null);
+            const message = errorData.message || `HTTP error! Status: ${response.status}`;
+            showToast(`Request failed: ${message}`);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
         }
         return response;
     } catch (error) {
         console.error("Fetch error details:", error.message);
-        if (
-        error.message !== "Server is not healthy. Health check failed." &&
-        !error.message.startsWith("HTTP error!")
-        ) {
-        showToast("A connection error occurred. Please check your network.");
+        if (error.message !== "Server is not healthy. Health check failed." && !error.message.startsWith("HTTP error!")) {
+            showToast("A connection error occurred. Please check your network.");
         }
         throw error;
     }
