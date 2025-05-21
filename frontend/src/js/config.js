@@ -7,10 +7,17 @@ const API_BASE = (() => {
     const isElectron = typeof window !== 'undefined' &&
         window.process?.type &&
         process?.versions?.electron;
-
-    return isElectron
-        ? 'http://localhost:8080/api'
-        : 'https://foodstats-backend.onrender.com/api';
+    
+    const isRender = window.location.hostname.includes('.onrender.com');
+    const renderBackendUrl = 'https://foodstats-backend.onrender.com/api';
+    
+    if (isElectron) {
+        return 'http://localhost:8080/api';
+    } else if (isRender) {
+        return renderBackendUrl;
+    } else {
+        return 'http://localhost:8080/api';
+    }
 })();
 
 const SESSION_ID = (() => {

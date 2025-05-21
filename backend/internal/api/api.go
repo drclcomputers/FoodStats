@@ -110,6 +110,16 @@ func InitServer() {
 }
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	status := map[string]interface{}{
 		"status":    "ok",
 		"timestamp": time.Now().UTC(),
