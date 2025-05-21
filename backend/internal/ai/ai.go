@@ -86,29 +86,7 @@ func NewAIService() *AIService {
 }
 
 func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Recipe, error) {
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(path)
-
-	if os.Getenv("RENDER") == "true" {
-		log.Println("Running on Render.com, checking Python dependencies...")
-
-		installCmd := exec.Command("pip3", "install",
-			"numpy>=1.24.3,<2.0.0",
-			"pandas>=1.5.3,<2.0.0",
-			"scikit-learn>=1.2.2,<1.4.0")
-
-		installOutput, err := installCmd.CombinedOutput()
-		if err != nil {
-			log.Printf("Warning: Failed to install Python dependencies: %v\nOutput: %s", err, string(installOutput))
-		} else {
-			log.Printf("Successfully installed Python dependencies")
-		}
-	}
-
-	recommendPath := filepath.Join(s.mlsPath, "recommend.py")
+	recommendPath := filepath.Join(s.mlsPath, "./backend/internal/mls/recommend.py")
 	log.Printf("Looking for Python recommendation script at: %s", recommendPath)
 
 	if _, err := os.Stat(recommendPath); os.IsNotExist(err) {
@@ -131,8 +109,6 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 		}
 	}
 
-	s.pythonPath = detectPythonExecutable()
-
 	cmd := exec.Command(s.pythonPath,
 		recommendPath,
 		"--ingredients", strings.Join(ingredients, ","))
@@ -151,34 +127,12 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 }
 
 func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *config.UserProfile) (*config.NutritionAnalysis, error) {
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(path)
-
 	data, err := json.Marshal(ingredients)
 	if err != nil {
 		return nil, err
 	}
 
-	if os.Getenv("RENDER") == "true" {
-		log.Println("Running on Render.com, checking Python dependencies...")
-
-		installCmd := exec.Command("pip3", "install",
-			"numpy>=1.24.3,<2.0.0",
-			"pandas>=1.5.3,<2.0.0",
-			"scikit-learn>=1.2.2,<1.4.0")
-
-		installOutput, err := installCmd.CombinedOutput()
-		if err != nil {
-			log.Printf("Warning: Failed to install Python dependencies: %v\nOutput: %s", err, string(installOutput))
-		} else {
-			log.Printf("Successfully installed Python dependencies")
-		}
-	}
-
-	scriptPath := filepath.Join(s.mlsPath, "analyzer.py")
+	scriptPath := filepath.Join(s.mlsPath, "./backend/internal/mls/analyzer.py")
 	log.Printf("Looking for Python script at: %s", scriptPath)
 
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
@@ -203,7 +157,7 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 
 	var cmd *exec.Cmd
 
-	s.pythonPath = detectPythonExecutable()
+	s.pythonPath = "sudo" + detectPythonExecutable()
 
 	if profile != nil {
 		profileData, err := json.Marshal(profile)
