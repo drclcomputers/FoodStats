@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: foodstats-backend
+    env: python
+    buildCommand: |
+      cd backend
+      go build -o app
+      pip install -r requirements.txt
+    startCommand: ./app
