@@ -32,7 +32,7 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 	r.Use(middleware.RateLimit())
 	r.Use(middleware.CORS())
 
-	staticFs := http.FileServer(http.Dir("./frontend"))
+	staticFs := http.FileServer(http.Dir("../frontend"))
 	r.PathPrefix("/").Handler(staticFs)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
