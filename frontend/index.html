@@ -12,19 +12,27 @@
     <title>FoodStats</title>
     <link href="src/css/style.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="src/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
 <nav class="navbar">
-    <ul class="nav-list">
-        <li><a href="index.html" class="nav-item active">Home</a></li>
-        <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
-        <li><a href="healthy-recipes.html" class="nav-item">Healthy Recipes</a></li>
-        <li><a href="profile.html" class="nav-item">My Profile</a></li>
-        <li><form id="recipeSearchForm">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-group">
+        <ul class="nav-list" id="mainNav">
+            <li><a href="index.html" class="nav-item">Home</a></li>
+            <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
+            <li><a href="healthy-recipes.html" class="nav-item">Healthy Recipes</a></li>
+            <li><a href="profile.html" class="nav-item">My Profile</a></li>
+        </ul>
+        <form id="recipeSearchForm">
             <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off">
             <ul id="recipeSuggestions" class="suggestions-list"></ul>
-        </form></li>
-    </ul>
+        </form>
+    </div>
 </nav>
 
 <h1>FoodStats</h1>

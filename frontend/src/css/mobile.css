@@ -6,8 +6,8 @@
 */
 
 :root {
-    --breakpoint-tablet: 900px;
-    --breakpoint-mobile: 600px;
+    --breakpoint-tablet: 768px;
+    --breakpoint-mobile: 450px;
 
     --mobile-padding-sm: 0.5rem;
     --mobile-padding-md: 0.7rem;
@@ -23,36 +23,10 @@
     --mobile-gap-lg: 1rem;
 }
 
-@media (max-width: var(--breakpoint-tablet)) {
-    .container {
-        width: 99%;
-        padding: 0.5rem 0 5rem 0;
-    }
-    .recipe-grid {
-        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    }
-    #ingredientList li,
-    .recipe-card {
-        font-size: 1rem;
-        padding: 0.8rem 0.7rem;
-    }
-    .score-circle {
-        width: 80px;
-        height: 80px;
-        font-size: 1.3rem;
-    }
-}
-
-@media (max-width: var(--breakpoint-mobile)) {
+@media (max-width: 768px) {
     .container {
         width: 100vw;
         padding: 0.2rem 0 4rem 0;
-    }
-    form,
-    #ingredientForm {
-        flex-direction: column;
-        gap: 0.7rem;
-        padding: 1rem;
     }
     #name, #grams {
         padding: 0.6rem 0.8rem;
@@ -86,24 +60,15 @@
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    .navbar {
-        padding: 0.3rem 0;
-        min-height: 38px;
-    }
-    .nav-item {
-        font-size: 0.95rem;
-        padding: 0.3rem 0.7rem;
-    }
     .footer {
         font-size: 0.9rem;
         padding: 0.3rem 0;
         gap: 0.4rem;
     }
-    #recipeSearchInput {
-        font-size: 0.95rem;
-        padding: 5px 8px;
-        min-width: 80px;
-        max-width: 120px;
+    #recipeSearchForm {
+        margin-left: auto;
+        width: 100%;
+        max-width: 220px;
     }
     #suggestions {
         max-width: calc(100vw - 2rem);
@@ -122,4 +87,42 @@
         font-size: 1.1rem;
         padding: 0 1rem;
     }
+
+    .hamburger {
+        display: block;
+    }
+    .nav-list {
+        display: none;
+        position: absolute;
+        top: 56px;
+        left: 0;
+        right: 0;
+        background: #2b6777;
+        flex-direction: column;
+        align-items: stretch;
+        z-index: 150;
+    }
+    .nav-list.open {
+        display: flex;
+    }
+    .nav-item {
+        padding: 1.1rem 0;
+        font-size: 1.1rem;
+        border-bottom: 1px solid #357b8d;
+        text-align: center;
+    }
+    .nav-item:last-child {
+        border-bottom: none;
+    }
+    #recipeSearchForm {
+        width: 100%;
+        margin: 0.3rem 0 0.3rem 0;
+        max-width: 100vw;
+    }
+    .navbar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
 }
+

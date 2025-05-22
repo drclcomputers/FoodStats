@@ -165,3 +165,66 @@ button:hover,
     cursor: pointer;
     user-select: none;
 }
+
+/* === HAMBURGER MENU === */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    background: #fff;
+    border: 2px solid #2b6777;
+    box-shadow: 0 2px 8px rgba(43,103,119,0.10);
+    cursor: pointer;
+    z-index: 200;
+    position: relative;
+    transition: 
+        box-shadow 0.25s cubic-bezier(.4,2,.3,1),
+        border-color 0.25s cubic-bezier(.4,2,.3,1),
+        background 0.25s cubic-bezier(.4,2,.3,1),
+        transform 0.18s cubic-bezier(.4,2,.3,1);
+    outline: none;
+    padding: 1vh;
+    box-sizing: border-box;
+}
+
+.hamburger span {
+    display: block;
+    width: 26px;
+    height: 3.5px;
+    margin: 3px 0; /* Reduce margin for better centering */
+    background: #2b6777;
+    border-radius: 2px;
+    transition: 
+        all 0.35s cubic-bezier(.4,2,.3,1),
+        background 0.2s;
+}
+
+.hamburger:hover {
+    background: #e3f6f5;
+    border-color: #52ab98;
+    box-shadow: 0 0 0 4px #52ab9822, 0 6px 24px #52ab9833;
+    transform: scale(1.08) rotate(-2deg);
+}
+
+.hamburger:hover span {
+    background: #52ab98;
+}
+
+.hamburger:active {
+    background: #b2dfdb;
+    border-color: #2b6777;
+    transform: scale(0.97);
+}
+
+.hamburger.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.hamburger.open span:nth-child(2) {
+    opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}

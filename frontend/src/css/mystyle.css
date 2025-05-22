@@ -54,6 +54,12 @@ h2 {
 }
 
 /* ====== NAVBAR & FOOTER ====== */
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
 .navbar {
     background: #2b6777;
     padding: 0.3rem 0;

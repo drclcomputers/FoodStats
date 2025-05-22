@@ -196,3 +196,22 @@ async function checkUserProfile() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburgerBtn');
+    const navList = document.getElementById('mainNav');
+    if (!hamburger || !navList) return;
+
+    hamburger.addEventListener('click', function() {
+        const isOpen = navList.classList.toggle('open');
+        hamburger.classList.toggle('open', isOpen);
+        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    navList.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            navList.classList.remove('open');
+            hamburger.classList.remove('open');
+            hamburger.setAttribute('aria-expanded', 'false');
+        });
+    });
+});
