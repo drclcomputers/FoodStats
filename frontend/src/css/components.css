@@ -202,6 +202,7 @@ button:hover,
     transition: all 0.35s cubic-bezier(.4,2,.3,1);
     margin-left: auto;
     margin-right: auto;
+    margin-top: auto;
 }
 
 .hamburger:hover {
