@@ -3,3 +3,4 @@ dist/
 backend/FoodStats.exe
 *.zip
 .DS_Store
+backend/internal/mls/__pycache__
