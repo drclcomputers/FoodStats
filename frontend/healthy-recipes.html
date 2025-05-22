@@ -16,18 +16,23 @@
 </head>
 <body style="text-align: left">
 <nav class="navbar">
-    <ul class="nav-list">
-        <li><a href="index.html" class="nav-item">Home</a></li>
-        <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
-        <li><a href="healthy-recipes.html" class="nav-item active">Healthy Recipes</a></li>
-        <li><a href="profile.html" class="nav-item">My Profile</a></li>
-        <li>
-            <form id="recipeSearchForm">
-                <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
-                <ul id="recipeSuggestions" class="suggestions-list" style="position:absolute; left:0; top:100%; width:100%;"></ul>
-            </form>
-        </li>
-    </ul>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-group">
+        <ul class="nav-list" id="mainNav">
+            <li><a href="index.html" class="nav-item">Home</a></li>
+            <li><a href="recommendations.html" class="nav-item">Recommendations</a></li>
+            <li><a href="healthy-recipes.html" class="nav-item active">Healthy Recipes</a></li>
+            <li><a href="profile.html" class="nav-item">My Profile</a></li>
+        </ul>
+        <form id="recipeSearchForm">
+            <input type="text" id="recipeSearchInput" placeholder="Search recipes..." autocomplete="off">
+            <ul id="recipeSuggestions" class="suggestions-list"></ul>
+        </form>
+    </div>
 </nav>
 
 <h1 style="text-align: center;">Healthy Recipes</h1>

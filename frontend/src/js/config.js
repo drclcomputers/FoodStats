@@ -202,16 +202,35 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!hamburger || !navList) return;
 
     hamburger.addEventListener('click', function() {
-        const isOpen = navList.classList.toggle('open');
-        hamburger.classList.toggle('open', isOpen);
-        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if (navList.classList.contains('open')) {
+            navList.classList.remove('open');
+            navList.classList.add('closing');
+            hamburger.classList.remove('open');
+            hamburger.setAttribute('aria-expanded', 'false');
+
+            navList.addEventListener('animationend', function handler() {
+                navList.classList.remove('closing');
+                navList.removeEventListener('animationend', handler);
+            });
+        } else {
+            // FIX: Remove 'closing' before opening to prevent animation conflict
+            navList.classList.remove('closing');
+            navList.classList.add('open');
+            hamburger.classList.add('open');
+            hamburger.setAttribute('aria-expanded', 'true');
+        }
     });
 
     navList.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', function() {
             navList.classList.remove('open');
+            navList.classList.add('closing');
             hamburger.classList.remove('open');
             hamburger.setAttribute('aria-expanded', 'false');
+            navList.addEventListener('animationend', function handler() {
+                navList.classList.remove('closing');
+                navList.removeEventListener('animationend', handler);
+            });
         });
     });
 });

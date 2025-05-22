@@ -182,11 +182,9 @@ button:hover,
     position: relative;
     transition: 
         box-shadow 0.25s cubic-bezier(.4,2,.3,1),
-        border-color 0.25s cubic-bezier(.4,2,.3,1),
-        background 0.25s cubic-bezier(.4,2,.3,1),
         transform 0.18s cubic-bezier(.4,2,.3,1);
     outline: none;
-    padding: 1vh;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -194,19 +192,18 @@ button:hover,
     display: block;
     width: 26px;
     height: 3.5px;
-    margin: 3px 0; /* Reduce margin for better centering */
+    margin: 3px 0;
     background: #2b6777;
     border-radius: 2px;
-    transition: 
-        all 0.35s cubic-bezier(.4,2,.3,1),
-        background 0.2s;
+    transition: all 0.35s cubic-bezier(.4,2,.3,1);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .hamburger:hover {
     background: #e3f6f5;
     border-color: #52ab98;
     box-shadow: 0 0 0 4px #52ab9822, 0 6px 24px #52ab9833;
-    transform: scale(1.08) rotate(-2deg);
 }
 
 .hamburger:hover span {

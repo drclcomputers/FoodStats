@@ -108,6 +108,7 @@ h2 {
     width: 220px;
     min-width: 0;
     background: #fff;
+    border: 3px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(43, 103, 119, 0.10);
     transition: box-shadow 0.2s;

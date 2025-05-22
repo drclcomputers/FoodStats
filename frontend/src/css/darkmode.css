@@ -294,3 +294,24 @@ body.dark-mode #goal {
 body.dark-mode input[type="checkbox"] {
     accent-color: var(--dark-accent);
 }
+
+/* === Hamburger Menu === */
+body.dark-mode .hamburger {
+    background: var(--dark-bg-secondary) !important;
+    border-color: #fff !important;
+}
+
+body.dark-mode .hamburger span {
+    background: #fff !important;
+    transition: all 0.35s cubic-bezier(.4,2,.3,1) !important;
+}
+
+body.dark-mode .nav-item {
+    color: #fff !important;
+}
+
+body.dark-mode .nav-item.active,
+body.dark-mode .nav-item:hover {
+    background: rgba(255,255,255,0.08) !important;
+}
+
