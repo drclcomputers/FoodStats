@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -28,9 +29,20 @@ func StaticFileServer(root string) func(http.Handler) http.Handler {
 			path := root + r.URL.Path
 			_, err := os.Stat(path)
 
+			if strings.HasSuffix(r.URL.Path, ".css") ||
+				strings.HasSuffix(r.URL.Path, ".js") ||
+				strings.HasSuffix(r.URL.Path, ".ico") {
+				if _, err := os.Stat(path); err == nil {
+					fileServer.ServeHTTP(w, r)
+					return
+				}
+			}
+
 			if os.IsNotExist(err) && r.URL.Path != "/" {
-				http.ServeFile(w, r, root+"/index.html")
-				return
+				if !strings.Contains(r.URL.Path, ".") {
+					http.ServeFile(w, r, root+"/index.html")
+					return
+				}
 			}
 
 			fileServer.ServeHTTP(w, r)
