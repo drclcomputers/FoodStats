@@ -9,12 +9,14 @@ const API_BASE = (() => {
         process?.versions?.electron;
     
     const isRender = window.location.hostname.includes('.onrender.com');
-    const renderBackendUrl = 'https://foodstats-backend.onrender.com/api';
+    const isReplit = window.location.hostname.includes('.repl.co');
     
     if (isElectron) {
         return 'http://localhost:8080/api';
     } else if (isRender) {
-        return renderBackendUrl;
+        return 'https://foodstats-backend.onrender.com/api';
+    } else if (isReplit) {
+        return '/api'; 
     } else {
         return 'http://localhost:8080/api';
     }

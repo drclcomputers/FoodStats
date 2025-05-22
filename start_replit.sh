@@ -9,12 +9,17 @@ python3 --version
 echo "Installing Python dependencies..."
 pip install -r requirements.txt --no-cache-dir
 
+# Make sure frontend is copied to the right location
+echo "Setting up frontend..."
+mkdir -p frontend
+cp -r frontend/* frontend/ || echo "Frontend already in place"
+
 # Build Go backend
 echo "Building backend..."
 cd backend
 go build -o app 
 
-# Modify AI service path for Replit
+# Set environment variables
 echo "export REPLIT=true" >> ~/.bashrc
 export REPLIT=true
 
@@ -26,13 +31,9 @@ backend_pid=$!
 # Wait a bit for the backend to start
 sleep 3
 
-# Forward port for Replit
-echo "Setting up port forwarding..."
-curl -s https://educated-slimy-andesaurus.glitch.me/forward-port.html?port=8080 > /dev/null
-
 # Keep the script running to keep the backend alive
 echo "FoodStats is now running!"
-echo "Access the application using the 'Webview' button in Replit"
+echo "Access the application at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co"
 echo "Press Ctrl+C to stop the application"
 
 # Wait for backend to finish

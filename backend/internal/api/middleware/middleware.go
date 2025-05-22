@@ -9,10 +9,34 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/rs/zerolog"
 )
+
+func StaticFileServer(root string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fileServer := http.FileServer(http.Dir(root))
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if len(r.URL.Path) >= 4 && r.URL.Path[:4] == "/api" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			path := root + r.URL.Path
+			_, err := os.Stat(path)
+
+			if os.IsNotExist(err) && r.URL.Path != "/" {
+				http.ServeFile(w, r, root+"/index.html")
+				return
+			}
+
+			fileServer.ServeHTTP(w, r)
+		})
+	}
+}
 
 func CORS() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
