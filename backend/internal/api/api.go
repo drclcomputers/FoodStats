@@ -15,71 +15,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"runtime"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 )
-
-func replitStaticSrv(logger zerolog.Logger, r *mux.Router) {
-	frontendPath := "../frontend"
-
-	isReplit := os.Getenv("REPLIT") == "true"
-	if isReplit {
-		envPath := os.Getenv("FRONTEND_PATH")
-		if envPath != "" {
-			frontendPath = envPath
-			logger.Info().Str("frontendPath", frontendPath).Msg("Using frontend path from environment")
-		} else {
-			wd, _ := os.Getwd()
-			candidates := []string{
-				"/home/runner/FoodStats/frontend",
-				filepath.Join(wd, "../frontend"),
-				filepath.Join(wd, "frontend"),
-				"../frontend",
-				"../../frontend",
-			}
-
-			for _, path := range candidates {
-				if _, err := os.Stat(path); err == nil {
-					indexPath := filepath.Join(path, "index.html")
-					if _, err := os.Stat(indexPath); err == nil {
-						frontendPath = path
-						logger.Info().Str("frontendPath", frontendPath).Msg("Found valid frontend directory")
-						break
-					}
-				}
-			}
-		}
-
-		logger.Info().Str("frontendPath", frontendPath).Msg("Using frontend path")
-		files, err := os.ReadDir(frontendPath)
-		if err == nil {
-			fileList := []string{}
-			for _, file := range files {
-				fileList = append(fileList, file.Name())
-			}
-			logger.Info().Strs("files", fileList).Msg("Files in frontend directory")
-
-			cssDir := filepath.Join(frontendPath, "src", "css")
-			if cssFiles, err := os.ReadDir(cssDir); err == nil {
-				cssFileList := []string{}
-				for _, file := range cssFiles {
-					cssFileList = append(cssFileList, file.Name())
-				}
-				logger.Info().Strs("cssFiles", cssFileList).Msg("CSS files found")
-			} else {
-				logger.Error().Err(err).Str("path", cssDir).Msg("Failed to read CSS directory")
-			}
-		} else {
-			logger.Error().Err(err).Str("path", frontendPath).Msg("Failed to read frontend directory")
-		}
-	}
-
-	r.Use(middleware.StaticFileServer(frontendPath))
-}
 
 func NewRouter(logger zerolog.Logger) *mux.Router {
 	r := mux.NewRouter()
@@ -91,7 +32,8 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 	r.Use(middleware.RateLimit())
 	r.Use(middleware.CORS())
 
-	replitStaticSrv(logger, r)
+	staticFs := http.FileServer(http.Dir("./frontend"))
+	r.PathPrefix("/").Handler(staticFs)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
