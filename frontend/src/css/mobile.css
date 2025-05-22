@@ -89,7 +89,7 @@
     }
 
     .hamburger {
-        display: block;
+        display: flex !important;
     }
     .nav-list {
         display: none;

@@ -189,7 +189,7 @@ button:hover,
     vertical-align: middle;
     font-size: 0;
     line-height: 0;
-    gap: auto; 
+    gap: 3px; 
 }
 
 .hamburger span {
@@ -200,8 +200,7 @@ button:hover,
     background: #2b6777;
     border-radius: 2px;
     transition: all 0.35s cubic-bezier(.4,2,.3,1);
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0;
 }
 
 .hamburger:hover {
