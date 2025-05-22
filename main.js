@@ -9,6 +9,36 @@ const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
 
+const { spawnSync } = require('child_process');
+const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+const backendDir = path.join(process.resourcesPath, 'backend');
+const requirementsPath = path.join(backendDir, 'requirements.txt');
+
+function installPythonDeps() {
+    try {
+        const check = spawnSync(pythonCmd, ['-c', 'import numpy'], { stdio: 'ignore' });
+        if (check.status !== 0) {
+            const pip = spawnSync(pythonCmd, ['-m', 'pip', 'install', '--upgrade', 'pip'], { stdio: 'inherit' });
+            const pipInstall = spawnSync(
+                pythonCmd,
+                ['-m', 'pip', 'install', '--no-cache-dir', '-r', requirementsPath],
+                { stdio: 'inherit' }
+            );
+            if (pipInstall.status !== 0) {
+                throw new Error('Failed to install Python dependencies');
+            }
+        }
+    } catch (err) {
+        dialog.showErrorBox(
+            'Python Error',
+            'Could not install Python dependencies. Please ensure Python 3 and pip are installed.\n\n' + err.message
+        );
+        app.quit();
+    }
+}
+
+installPythonDeps();
+
 const sessionFile = path.join(os.tmpdir(), '.foodstats_session');
 
 let mainWindow;

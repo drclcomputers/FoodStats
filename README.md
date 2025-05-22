@@ -60,6 +60,14 @@ A modern desktop application for tracking nutritional information and discoverin
 
 ## 🛠 Installation
 
+### Prerequisites
+
+- **Node.js** (v18+ recommended)
+- **Go** (v1.24+)
+- **Python** (>=3.11, recommended 3.11.x)
+- **pip** (for Python)
+- **Git** (for cloning the repository)
+
 ### Development Setup
 
 1. **Clone the repository**
@@ -68,27 +76,52 @@ A modern desktop application for tracking nutritional information and discoverin
     cd FoodStats
     ```
 
-2. **Install dependencies**
+2. **Install Node.js dependencies**
     ```bash
     npm install
     ```
 
-3. **Build the backend**
+3. **Install Python dependencies**
+    ```bash
+    pip3 install --no-cache-dir -r backend/requirements.txt
+    ```
+    > If you get an error, make sure Python 3.11+ and pip are installed and available in your PATH.
+
+4. **Build the Go backend**
     ```bash
     cd backend
     # On Windows
     go build -o FoodStats.exe
-    # On Linux
+    # On Linux/Mac
     go build -o FoodStats
     cd ..
     ```
 
-4. **Run in development mode**
+5. **Run in development mode**
     ```bash
     npm start
     ```
 
-### Production Build
+---
+
+### One-Step Install 
+
+## (Linux/Mac)
+
+You can use the provided [`install.sh`](install.sh) script for a quick setup:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+## (Windows)
+
+YOu can download the latest release and install it. When starting, the app will try to install the python dependencies required for AI using pip.
+
+
+
+### Production Build (Desktop App)
 
 1. **Build the application**
     ```bash
@@ -96,10 +129,13 @@ A modern desktop application for tracking nutritional information and discoverin
     ```
 
 2. **Install the application**
-- Navigate to the `dist` folder
-- Run the installer (`.exe` for Windows)
+    - Go to the `dist` folder
+    - Run the installer (`.exe` for Windows, `.AppImage` or `.deb` for Linux)
+
+**On first launch, the app will attempt to install Python dependencies automatically. If you see errors about missing Python or pip, please install [Python 3.11+](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/), then re-run the app.**
 
 ---
+
 
 ## 🌐 API Endpoints
 
@@ -131,7 +167,7 @@ A modern desktop application for tracking nutritional information and discoverin
 ## 💻 System Requirements (Desktop App)
 
 - Windows 10 or later / Linux (Ubuntu 20.04 or later recommended)
-- 4GB RAM absolute minimum (recommended 8+ GB RAM)
+- 4GB RAM minimum (8GB+ recommended)
 - 500MB disk space
 - Internet connection for installation
 - Python >=3.11 for AI recommendations
@@ -151,14 +187,13 @@ The application stores its settings in:
 
 The AI recommendation system requires the following Python packages:
 ```
-numpy>=1.23.0
-pandas>=1.5.0
-scikit-learn>=1.2.0
+numpy>=1.24.3
+pandas>=1.5.3
+scikit-learn>=1.2.2
 ```
-
-These packages are automatically installed during application setup. For manual installation, run:
+These are installed automatically at first launch of the packaged app, or manually with:
 ```bash
-pip install -r backend/requirements.txt
+pip3 install --no-cache-dir -r backend/requirements.txt
 ```
 
 ---

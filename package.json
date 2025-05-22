@@ -23,8 +23,8 @@
     },
     "extraResources": [
       {
-        "from": "backend/${os}/${arch}/FoodStats${platform==='win32'?'.exe':''}",
-        "to": "backend/FoodStats${platform==='win32'?'.exe':''}"
+        "from": "backend/FoodStats.exe",
+        "to": "backend/FoodStats.exe"
       },
       {
         "from": "frontend",
@@ -33,6 +33,14 @@
       {
         "from": "backend/database/nutrition_data.db",
         "to": "backend/database/nutrition_data.db"
+      },
+      {
+        "from": "backend/internal/mls",
+        "to": "backend/internal/mls"
+      },
+      {
+        "from": "backend/requirements.txt",
+        "to": "backend/requirements.txt"
       }
     ],
     "win": {
