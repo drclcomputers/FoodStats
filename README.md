@@ -132,7 +132,7 @@ YOu can download the latest release and install it. When starting, the app will 
     - Go to the `dist` folder
     - Run the installer (`.exe` for Windows, `.AppImage` or `.deb` for Linux)
 
-**On first launch, the app will attempt to install Python dependencies automatically. If you see errors about missing Python or pip, please install [Python 3.11+](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/), then re-run the app.**
+**On launch, the app will attempt to install Python dependencies automatically. If you see errors about missing Python or pip, please install [Python 3.11+](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/), then re-run the app.**
 
 ---
 
@@ -140,18 +140,18 @@ YOu can download the latest release and install it. When starting, the app will 
 ## 🌐 API Endpoints
 
 - `GET /api/ingredients` - List all ingredients
-- `POST /api/add-ingredient` - Add a new ingredient
-- `DELETE /api/delete-ingredient` - Remove an ingredient
+- `POST /api/addingredient` - Add a new ingredient
+- `DELETE /api/deleteingredient` - Remove an ingredient
 - `GET /api/calculate` - Calculate total nutrition
 - `GET /api/suggestions` - Get ingredient suggestions
 - `DELETE /api/reset` - Reset ingredient list
-- `GET /api/list-recipes` - List all recipes
-- `GET /api/get-recipe?name=...` - Get a recipe by name
-- `GET /api/suggest-recipes` - Suggest recipes based on current ingredients
-- `POST /api/analyze-nutrition` - Get AI-powered nutritional analysis
-- `POST /api/save-profile` - Save user profile data
-- `GET /api/get-profile` - Retrieve user profile data
-- `DELETE /api/reset-profile` - Delete user profile data
+- `GET /api/listrecipes` - List all recipes
+- `GET /api/getrecipe?name=...` - Get a recipe by name
+- `GET /api/suggestrecipes` - Suggest recipes based on current ingredients
+- `POST /api/analyzenutrition` - Get AI-powered nutritional analysis
+- `POST /api/saveprofile` - Save user profile data
+- `GET /api/getprofile` - Retrieve user profile data
+- `DELETE /api/resetprofile` - Delete user profile data
 
 ---
 
@@ -236,6 +236,46 @@ Give a ⭐️ if this project helped you!
 ---
 
 ## 📝 Changelog
+
+### Version 4.2.0
+
+- **Improved Import/Export**
+  - Unified export/import for ingredient lists with better error handling and user feedback
+  - Import now resets the ingredient list and updates the recipe source indicator
+  - Exported files are named for clarity and include all ingredient details
+
+- **Recipe Source Tracking**
+  - Persistent display of the current recipe source (manual, imported, or from database)
+  - Source is cleared automatically when all ingredients are deleted
+
+- **Enhanced Recipe Integration**
+  - "Use Recipe" from suggestions and healthy recipes now imports all ingredients and updates the UI
+  - Skipped ingredients are reported to the user via toast notifications
+
+- **UI/UX Improvements**
+  - Improved mobile responsiveness and touch support
+  - More accessible navigation and larger clickable areas for mobile
+  - Consistent button styles and hover effects across all pages
+  - Improved toast notification system with dismiss controls and batching
+
+- **Performance and Stability**
+  - Faster ingredient list rendering and deletion animations
+  - Optimized fetch and update cycles for ingredient and recipe operations
+  - More robust error handling for backend/API failures
+
+- **Security and Validation**
+  - Stricter input validation for ingredient names and grams
+  - Improved error messages for invalid or duplicate ingredients
+  - Minor backend security patches and dependency updates
+
+- **Documentation and Help**
+  - Updated README and user manual to clarify import/export limitations (ingredients only)
+  - Added more troubleshooting tips for cloud and desktop
+  - Added new screenshots for mobile and desktop
+
+- **Miscellaneous**
+  - Updated dependencies for Electron and builder tools
+  - Minor bug fixes and code cleanup
 
 ### Version 4.0.0
 

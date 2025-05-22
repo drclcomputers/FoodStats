@@ -127,7 +127,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	status := map[string]interface{}{
 		"status":    "ok",
 		"timestamp": time.Now().UTC(),
-		"version":   "4.0.0",
+		"version":   "4.2.0",
 		"services":  make(map[string]string),
 	}
 
