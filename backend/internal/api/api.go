@@ -32,9 +32,6 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 	r.Use(middleware.RateLimit())
 	r.Use(middleware.CORS())
 
-	staticFs := http.FileServer(http.Dir("../frontend"))
-	r.PathPrefix("/").Handler(staticFs)
-
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			w.Header().Set("Content-Type", "application/json")
@@ -62,6 +59,9 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 	apiRouter.HandleFunc("/saveprofile", handler.SaveProfileHandler).Methods(http.MethodPost, http.MethodOptions)
 	apiRouter.HandleFunc("/getprofile", handler.GetProfileHandler).Methods(http.MethodGet, http.MethodOptions)
 	apiRouter.HandleFunc("/resetprofile", handler.ResetProfileHandler).Methods(http.MethodDelete, http.MethodOptions)
+
+	staticFs := http.FileServer(http.Dir("../frontend"))
+	r.PathPrefix("/").Handler(staticFs)
 
 	return r
 }
