@@ -8,8 +8,10 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,28 +23,38 @@ func StaticFileServer(root string) func(http.Handler) http.Handler {
 		fileServer := http.FileServer(http.Dir(root))
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if len(r.URL.Path) >= 4 && r.URL.Path[:4] == "/api" {
+			if strings.HasPrefix(r.URL.Path, "/api") {
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			path := root + r.URL.Path
-			_, err := os.Stat(path)
-
-			if strings.HasSuffix(r.URL.Path, ".css") ||
-				strings.HasSuffix(r.URL.Path, ".js") ||
-				strings.HasSuffix(r.URL.Path, ".ico") {
-				if _, err := os.Stat(path); err == nil {
-					fileServer.ServeHTTP(w, r)
-					return
-				}
+			if strings.HasSuffix(r.URL.Path, ".html") {
+				fileServer.ServeHTTP(w, r)
+				return
 			}
 
-			if os.IsNotExist(err) && r.URL.Path != "/" {
-				if !strings.Contains(r.URL.Path, ".") {
-					http.ServeFile(w, r, root+"/index.html")
+			log.Printf("Static file request: %s", r.URL.Path)
+
+			if strings.HasPrefix(r.URL.Path, "/src/") {
+				fileServer.ServeHTTP(w, r)
+				return
+			}
+
+			path := filepath.Join(root, r.URL.Path)
+			if _, err := os.Stat(path); err == nil {
+				fileServer.ServeHTTP(w, r)
+				return
+			}
+
+			if !strings.Contains(r.URL.Path, ".") && r.URL.Path != "/" {
+				htmlPath := filepath.Join(root, r.URL.Path+".html")
+				if _, err := os.Stat(htmlPath); err == nil {
+					http.ServeFile(w, r, htmlPath)
 					return
 				}
+
+				http.ServeFile(w, r, filepath.Join(root, "index.html"))
+				return
 			}
 
 			fileServer.ServeHTTP(w, r)

@@ -4,5 +4,5 @@ entrypoint = "main.go"
 
 [env]
 GO111MODULE = "on"
-PYTHONPATH = "${REPL_HOME}"
+REPLIT = "true"
 PORT = "8080"
