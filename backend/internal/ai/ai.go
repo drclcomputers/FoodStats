@@ -23,18 +23,24 @@ type AIService struct {
 }
 
 func detectPythonExecutable() string {
+	var pythonPath string
+	var err error
+
 	if runtime.GOOS == "windows" {
-		if path, err := exec.LookPath("python"); err == nil {
-			return path
+		pythonPath, err = exec.LookPath("python")
+		if err == nil {
+			log.Printf("Found Python at: %s", pythonPath)
+			return pythonPath
 		}
 	} else {
-		if path, err := exec.LookPath("python3"); err == nil {
-			return path
-		}
-		if path, err := exec.LookPath("python"); err == nil {
-			return path
+		pythonPath, err = exec.LookPath("python3")
+		if err == nil {
+			log.Printf("Found Python3 at: %s", pythonPath)
+			return pythonPath
 		}
 	}
+
+	log.Printf("WARNING: Could not find Python executable, using default 'python'")
 	return "python"
 }
 
@@ -45,10 +51,13 @@ func NewAIService() *AIService {
 	if isRender {
 		candidates := []string{
 			filepath.Join("internal", "mls"),
-			"/opt/render/project/src/internal/mls",
-			"/opt/render/project/internal/mls",
 			"/app/internal/mls",
 			".",
+			".",
+			"./backend/internal/mls",
+			"../internal/mls",
+			"/home/runner/FoodStats/internal/mls",
+			"/home/runner/FoodStats/backend/internal/mls",
 		}
 
 		cwd, _ := os.Getwd()
@@ -109,6 +118,12 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 		}
 	}
 
+	if s.pythonPath == "" {
+		s.pythonPath = detectPythonExecutable()
+	}
+
+	log.Printf("Using Python at: %s", s.pythonPath)
+
 	cmd := exec.Command(s.pythonPath,
 		recommendPath,
 		"--ingredients", strings.Join(ingredients, ","))
@@ -155,10 +170,12 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 		}
 	}
 
+	if s.pythonPath == "" {
+		s.pythonPath = detectPythonExecutable()
+	}
+	log.Printf("Using Python at: %s", s.pythonPath)
+
 	var cmd *exec.Cmd
-
-	s.pythonPath = "sudo" + detectPythonExecutable()
-
 	if profile != nil {
 		profileData, err := json.Marshal(profile)
 		if err != nil {

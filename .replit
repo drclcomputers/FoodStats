@@ -1,0 +1,8 @@
+run = "bash ./start_replit.sh"
+language = "go"
+entrypoint = "main.go"
+
+[env]
+GO111MODULE = "on"
+PYTHONPATH = "${REPL_HOME}"
+PORT = "8080"
