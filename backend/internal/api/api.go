@@ -32,14 +32,15 @@ func NewRouter(logger zerolog.Logger) *mux.Router {
 	r.Use(middleware.RateLimit())
 	r.Use(middleware.CORS())
 
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
-			return
-		}
-		http.NotFound(w, r)
-	}).Methods(http.MethodGet)
+	/*
+		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"status": "ok", "message": "FoodStats API is running"}`))
+				return
+			}
+			http.NotFound(w, r)
+		}).Methods(http.MethodGet)*/
 
 	apiRouter := r.PathPrefix("/api").Subrouter()
 
