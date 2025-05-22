@@ -29,18 +29,15 @@ func detectPythonExecutable() string {
 	if runtime.GOOS == "windows" {
 		pythonPath, err = exec.LookPath("python")
 		if err == nil {
-			//log.Printf("Found Python at: %s", pythonPath)
 			return pythonPath
 		}
 	} else {
 		pythonPath, err = exec.LookPath("python3")
 		if err == nil {
-			///log.Printf("Found Python3 at: %s", pythonPath)
 			return pythonPath
 		}
 	}
 
-	//log.Printf("WARNING: Could not find Python executable, using default 'python'")
 	return "python"
 }
 
@@ -60,15 +57,10 @@ func NewAIService() *AIService {
 			"/home/runner/FoodStats/backend/internal/mls",
 		}
 
-		//cwd, _ := os.Getwd()
-		//log.Printf("Current working directory: %s", cwd)
-
 		for _, path := range candidates {
-			//log.Printf("Checking MLS directory: %s", path)
 			if _, err := os.Stat(path); err == nil {
 				if _, err := os.Stat(filepath.Join(path, "analyzer.py")); err == nil {
 					mlsPath = path
-					//log.Printf("Found valid MLS directory: %s", mlsPath)
 					break
 				}
 			}
@@ -76,16 +68,9 @@ func NewAIService() *AIService {
 
 		if mlsPath == "" {
 			mlsPath = "/app/internal/mls"
-			//log.Printf("No valid MLS directory found, defaulting to: %s", mlsPath)
 		}
 	} else {
 		mlsPath = filepath.Join("internal", "mls")
-	}
-
-	for _, env := range os.Environ() {
-		if strings.HasPrefix(env, "RENDER") || strings.HasPrefix(env, "PATH") {
-			//log.Printf("Environment: %s", env)
-		}
 	}
 
 	return &AIService{
@@ -96,10 +81,8 @@ func NewAIService() *AIService {
 
 func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Recipe, error) {
 	recommendPath := filepath.Join(s.mlsPath, "./backend/internal/mls/recommend.py")
-	//log.Printf("Looking for Python recommendation script at: %s", recommendPath)
 
 	if _, err := os.Stat(recommendPath); os.IsNotExist(err) {
-		//log.Printf("ERROR: Python recommendation script not found at %s", recommendPath)
 		possiblePaths := []string{
 			"./backend/internal/mls/recommend.py",
 			"recommend.py",
@@ -109,10 +92,8 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 		}
 
 		for _, path := range possiblePaths {
-			//log.Printf("Checking alternative path: %s", path)
 			if _, err := os.Stat(path); err == nil {
 				recommendPath = path
-				//log.Printf("Found recommendation script at: %s", recommendPath)
 				break
 			}
 		}
@@ -121,8 +102,6 @@ func (s *AIService) GetRecipeRecommendations(ingredients []string) ([]config.Rec
 	if s.pythonPath == "" {
 		s.pythonPath = detectPythonExecutable()
 	}
-
-	//log.Printf("Using Python at: %s", s.pythonPath)
 
 	cmd := exec.Command(s.pythonPath,
 		recommendPath,
@@ -148,10 +127,8 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 	}
 
 	scriptPath := filepath.Join(s.mlsPath, "./backend/internal/mls/analyzer.py")
-	//log.Printf("Looking for Python script at: %s", scriptPath)
 
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
-		//log.Printf("ERROR: Python script not found at %s", scriptPath)
 		possiblePaths := []string{
 			"./backend/internal/mls/analyzer.py",
 			"analyzer.py",
@@ -161,10 +138,8 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 		}
 
 		for _, path := range possiblePaths {
-			//log.Printf("Checking alternative path: %s", path)
 			if _, err := os.Stat(path); err == nil {
 				scriptPath = path
-				//log.Printf("Found script at: %s", scriptPath)
 				break
 			}
 		}
@@ -173,7 +148,6 @@ func (s *AIService) AnalyzeNutrition(ingredients []config.Ingredient, profile *c
 	if s.pythonPath == "" {
 		s.pythonPath = detectPythonExecutable()
 	}
-	//log.Printf("Using Python at: %s", s.pythonPath)
 
 	var cmd *exec.Cmd
 	if profile != nil {
