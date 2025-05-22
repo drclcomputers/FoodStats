@@ -4,4 +4,3 @@
 
 # Activate Python environment and run your script
 source venv/bin/activate
-python3 your_script.py  # or run background tasks here
