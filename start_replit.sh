@@ -5,10 +5,6 @@ python_path=$(which python3)
 echo "Using Python3 from: $python_path"
 python3 --version
 
-# Install Python dependencies
-echo "Installing Python dependencies..."
-pip install -r requirements.txt --no-cache-dir
-
 # Create a proper frontend directory structure
 echo "Setting up frontend..."
 mkdir -p /home/runner/FoodStats/frontend/src/css
