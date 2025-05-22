@@ -9,7 +9,7 @@ const API_BASE = (() => {
         process?.versions?.electron;
     
     const isRender = window.location.hostname.includes('.onrender.com');
-    const isReplit = window.location.hostname.includes('.repl.co');
+    const isReplit = window.location.hostname.includes('.replit.dev');
     
     if (isElectron) {
         return 'http://localhost:8080/api';
