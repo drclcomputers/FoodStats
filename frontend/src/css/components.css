@@ -186,6 +186,7 @@ button:hover,
     outline: none;
     padding: 0;
     box-sizing: border-box;
+    vertical-align: middle;
 }
 
 .hamburger span {
