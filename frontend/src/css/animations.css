@@ -364,3 +364,12 @@ body {
     animation: slideUpNav 0.35s cubic-bezier(.4,2,.3,1) forwards;
 }
 
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+

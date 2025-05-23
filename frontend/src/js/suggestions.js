@@ -190,10 +190,10 @@ class SuggestionsManager {
                 showToast("Failed to initiate recipe loading via AI Manager.");
             }
         } else {
-                console.error(
-                    "AIManager or AIManager.loadRecipe is not available. Cannot use recipe."
-                );
-                showToast("Recipe loading functionality is currently unavailable.");
+            console.error(
+                "AIManager or AIManager.loadRecipe is not available. Cannot use recipe."
+            );
+            throw new error("Recipe loading functionality is currently unavailable.");
         }
 
             try {

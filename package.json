@@ -1,6 +1,6 @@
 {
   "name": "foodstats-desktop",
-  "version": "4.2.0",
+  "version": "4.4.0",
   "description": "Desktop application for tracking nutritional information",
   "main": "main.js",
   "scripts": {

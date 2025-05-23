@@ -150,7 +150,34 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('toasts', '[]');
     
     checkUserProfile();
+
+    setupKeyboardShortcuts();
 });
+
+function setupKeyboardShortcuts() {
+    document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey) {
+            switch(e.key.toLowerCase()) {
+                case '1':
+                    e.preventDefault();
+                    window.location.href = "index.html";
+                    break;
+                case '2':
+                    e.preventDefault();
+                    window.location.href = "recommendations.html";
+                    break;
+                case '3':
+                    e.preventDefault();
+                    window.location.href = "healthy-recipes.html";
+                    break;
+                case '4':
+                    e.preventDefault();
+                    window.location.href = "profile.html";
+                    break;
+            }
+        }
+    });
+}
 
 async function checkServerHealth() {
     try {

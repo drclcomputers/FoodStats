@@ -40,50 +40,61 @@ class IngredientManager {
     }
 
     initializeEventListeners() {
-        // Form submissions
         this.form.addEventListener("submit", (e) => this.handleAddIngredient(e));
         
-        // Input validations
         this.nameInput.addEventListener("input", () => this.clearError(this.nameInput));
         this.gramsInput.addEventListener("input", () => this.clearError(this.gramsInput));
         
-        // Button listeners
         this.calculateBtn.addEventListener('click', () => this.calculateTotal());
         this.resetBtn.addEventListener('click', () => this.resetIngredients());
         this.exportBtn.addEventListener('click', () => this.exportIngredients());
         this.importBtn.addEventListener('click', () => this.importInput.click());
         this.importInput.addEventListener('change', (e) => this.importIngredients(e));
         
-        // Keyboard shortcuts
         this.setupKeyboardShortcuts();
     }
 
     setupKeyboardShortcuts() {
-        document.addEventListener("keydown", (e) => {
-            if (e.ctrlKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'i': 
-                        e.preventDefault();
-                        this.nameInput.focus();
-                        break;
-                    case 'g':
-                        e.preventDefault();
-                        this.gramsInput.focus();
-                        break;
-                    case 'e':
-                        e.preventDefault();
-                        this.resetIngredients();
-                        break;
-                    case 'a':
-                        e.preventDefault();
-                        this.calculateTotal();
-                        break;
+    document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey) {
+            switch(e.key.toLowerCase()) {
+                case 'i': 
+                    e.preventDefault();
+                    this.nameInput.focus();
+                    break;
+                case 'g':
+                    e.preventDefault();
+                    this.gramsInput.focus();
+                    break;
+                case 'a':
+                    e.preventDefault();
+                    this.handleAddIngredient(e);
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    this.resetIngredients();
+                    break;
+                case 'z':
+                    e.preventDefault();
+                    this.calculateTotal();
+                    break;
+                case 's':
+                    e.preventDefault();
+                    this.showAiSuggestions();
+                    break;
                 }
             }
         });
     }
 
     async exportIngredients() {
+        if (this.exporting) return;
+        this.exporting = true;
+        const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+        if (!ingredients || ingredients.length === 0) {
+            showToast("Add at least one ingredient before exporting.");
+            return;
+        }
         try {
             const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
             const blob = new Blob([JSON.stringify(ingredients, null, 2)], { type: 'application/json' });
@@ -107,10 +118,15 @@ class IngredientManager {
         } catch (error) {
             showToast('Failed to export ingredients');
             console.error('Export error:', error);
+        } finally {
+            this.exporting = false;
         }
     }
 
     async importIngredients(e) {
+        if (this.importing) return;
+        this.importing=true;
+
         const file = e.target.files[0];
         if (!file) return;
 
@@ -150,18 +166,26 @@ class IngredientManager {
         } catch (error) {
             showToast('Failed to import ingredients');
             console.error('Import error:', error);
+        } finally {
+            this.importing = false;
         }
     }
 
     async showAiSuggestions() {
+        const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+        console.log(ingredients);
+        if (!ingredients || ingredients.length === 0) {
+            showToast("Add at least one ingredient before calculating.");
+            return;
+        }
+
         const aiSection = document.getElementById(AI_ANALYSIS_SECTION);
         const container = document.getElementById(AI_SMART_SUGGESTIONS);
-        
+
         aiSection.style.display = 'block';
         container.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div>Loading suggestions...</div>';
 
         try {
-            const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
             const names = ingredients.map(i => i.name);
             
             const res = await fetchWithSession(`${API_BASE}/smartrecommendations`, {
@@ -239,6 +263,12 @@ class IngredientManager {
     async addIngredient(name, grams) {
         this.updateRecipeSource("🛠️ Custom Recipe");
         localStorage.setItem("currentRecipe", "🛠️ Custom Recipe");
+
+        if (this.totalOutput) {
+            this.totalOutput.style.textAlign= "center";
+            this.totalOutput.innerHTML = 'Click "Calculate" to see a deep analysis of the recipe.';
+        }
+
         return await fetchWithSession(`${API_BASE}/addingredient`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -285,6 +315,7 @@ class IngredientManager {
                 item.appendChild(deleteBtn);
                 list.appendChild(item);
             });
+            list.lastElementChild.scrollIntoView({ behavior: "smooth", block: "end" });
         } catch (error) {
             console.error('Error fetching ingredients:', error);
             showToast('Failed to load ingredients');
@@ -306,6 +337,11 @@ class IngredientManager {
             }
 
             item.classList.add("removing");
+
+            if (this.totalOutput) {
+                this.totalOutput.style.textAlign = "center";
+                this.totalOutput.innerHTML = 'Click "Calculate" to see a deep analysis of the recipe.';
+            }
 
             const onAnimationEnd = async () => {
             item.removeEventListener("animationend", onAnimationEnd);
@@ -347,7 +383,6 @@ class IngredientManager {
         const items = this.ingredientList.querySelectorAll('li[data-name]');
         let totalGrams = 0;
         items.forEach(item => {
-            // Extract grams from text, e.g. "rice (100g): ..."
             const match = item.textContent.match(/\((\d+(\.\d+)?)g\)/);
             if (match) {
                 totalGrams += parseFloat(match[1]);
@@ -357,15 +392,19 @@ class IngredientManager {
     }
 
     async calculateTotal() {
+        const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+        if (!ingredients || ingredients.length === 0) {
+            showToast("Add at least one ingredient before calculating.");
+            return;
+        }
+
         const btn = this.calculateBtn;
         if (!btn) return;
         const originalText = btn.textContent;
 
-        const spinner = document.createElement('div');
-        spinner.className = 'loading';
-        btn.textContent = 'Calculating...';
-        btn.appendChild(spinner);
         btn.disabled = true;
+        const originalbtnHTML = btn.innerHTML;
+        btn.innerHTML = `<span class="loading-spinner" style="margin-right:8px;"></span>Calculating...`;
 
         try {
             const res = await fetchWithSession(`${API_BASE}/calculate`);
@@ -394,7 +433,23 @@ class IngredientManager {
                 <hr>
                 <div style="margin-top:10px;">
                     <strong>AI Health Score:</strong>
-                    <span style="display:inline-block; width:40px; height:40px; border-radius:50%; background:#2b6777; color:white; line-height:40px; text-align:center; font-weight:bold;">
+                    <span style="
+                        display:inline-block;
+                        width:40px;
+                        height:40px;
+                        border-radius:50%;
+                        color:white;
+                        line-height:40px;
+                        text-align:center;
+                        font-weight:bold;
+                        background:${(() => {
+                            const score = Math.round(analysis.health_score);
+                            if (score <= 30) return '#e74c3c';         // red
+                            if (score <= 50) return '#f1c40f';         // yellow
+                            if (score <= 75) return '#7bed9f';         // light green
+                            return '#2ecc71';                         // green
+                        })()};
+                    ">
                         ${Math.round(analysis.health_score)}
                     </span>
                     <br>
@@ -403,74 +458,85 @@ class IngredientManager {
                         ${analysis.recommendations.map(r => `<li>${r}</li>`).join('')}
                     </ul>
                     <strong>Nutrient Balance:</strong>
-                    <ul style="margin:8px 0 0 20px; text-align:left;">
-                        ${Object.entries(analysis.nutrient_balance).map(([k, v]) => `<li>${k}: ${(v*100).toFixed(1)}%</li>`).join('')}
-                    </ul>
+                    <div style="margin:12px 0 0 0;">
+                        ${Object.entries(analysis.nutrient_balance).map(([k, v]) => {
+                            let color = "#52ab98";
+                            if (k.toLowerCase().includes("protein")) color = "#2b6777";
+                            if (k.toLowerCase().includes("carb")) color = "#f1c40f";
+                            if (k.toLowerCase().includes("fat")) color = "#e67e22";
+                            return `
+                                <div style="margin-bottom:8px;">
+                                    <span style="display:inline-block;width:80px;">${k}:</span>
+                                    <div style="display:inline-block;vertical-align:middle;width:160px;height:14px;background:#eee;border-radius:7px;overflow:hidden;margin-right:8px;">
+                                        <div style="height:100%;width:${(v*100).toFixed(1)}%;background:${color};transition:width 0.5s;"></div>
+                                    </div>
+                                    <span style="font-weight:bold;color:${color};">${(v*100).toFixed(1)}%</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             `;
 
+            this.totalOutput.style.textAlign = "left";
             this.totalOutput.innerHTML = html;
         } catch (err) {
             console.error('Calculate error:', err);
             this.totalOutput.textContent = "Error calculating total";
             showToast("Failed to calculate total");
         } finally {
-            if (spinner && spinner.parentNode === btn) {
-                btn.removeChild(spinner);
-            }
             btn.textContent = originalText;
             btn.disabled = false;
+            btn.innerHTML = originalbtnHTML;
         }
     }
 
     async resetIngredients() {
-    const list = this.ingredientList;
-    if (!list) return;
+        const list = this.ingredientList;
+        if (!list) return;
 
-    list.classList.add('reset-animation');
+        list.classList.add('reset-animation');
 
-    try {
-        const response = await fetchWithSession(`${API_BASE}/reset`, { 
-            method: "DELETE"
-        });
+        try {
+            const response = await fetchWithSession(`${API_BASE}/reset`, { 
+                method: "DELETE"
+            });
 
-        if (!response.ok) {
-            throw new Error('Reset failed');
+            if (!response.ok) {
+                throw new Error('Reset failed');
+            }
+
+            await this.fetchIngredients();
+            this.updateRecipeSource('');
+            showToast("All ingredients cleared");
+            localStorage.setItem(MAIN_SELECTORS.CURRENT_RECIPE, '');
+            
+            const recipeSearchInput = document.getElementById(MAIN_SELECTORS.RECIPE_SEARCH_INPUT);
+            if (recipeSearchInput) recipeSearchInput.value = "";
+            
+            const suggestionsSection = document.getElementById(MAIN_SELECTORS.RECIPE_SUGGESTIONS_SECTION);
+            if (suggestionsSection) suggestionsSection.style.display = "none";
+            
+            if (this.totalOutput) {
+                this.totalOutput.innerHTML = "Click \"Calculate\" to see total nutrition.";
+            }
+
+            const aiSection = document.getElementById(MAIN_SELECTORS.AI_ANALYSIS_SECTION);
+            if (aiSection && aiSection.style.display === 'block') {
+                aiSection.classList.add('hiding');
+                setTimeout(() => {
+                    aiSection.style.display = 'none';
+                    aiSection.classList.remove('hiding');
+                }, 300);
+            }
+
+        } catch (error) {
+            console.error('Reset error:', error);
+            showToast('Failed to clear list');
+        } finally {
+            list.classList.remove('reset-animation');
         }
-
-        await this.fetchIngredients();
-        this.updateRecipeSource('');
-        showToast("All ingredients cleared");
-        localStorage.setItem(MAIN_SELECTORS.CURRENT_RECIPE, '');
-        
-        // Reset UI elements
-        const recipeSearchInput = document.getElementById(MAIN_SELECTORS.RECIPE_SEARCH_INPUT);
-        if (recipeSearchInput) recipeSearchInput.value = "";
-        
-        const suggestionsSection = document.getElementById(MAIN_SELECTORS.RECIPE_SUGGESTIONS_SECTION);
-        if (suggestionsSection) suggestionsSection.style.display = "none";
-        
-        if (this.totalOutput) {
-            this.totalOutput.innerHTML = "Click \"Calculate\" to see total nutrition.";
-        }
-
-        // Hide AI section if visible
-        const aiSection = document.getElementById(MAIN_SELECTORS.AI_ANALYSIS_SECTION);
-        if (aiSection && aiSection.style.display === 'block') {
-            aiSection.classList.add('hiding');
-            setTimeout(() => {
-                aiSection.style.display = 'none';
-                aiSection.classList.remove('hiding');
-            }, 300);
-        }
-
-    } catch (error) {
-        console.error('Reset error:', error);
-        showToast('Failed to clear list');
-    } finally {
-        list.classList.remove('reset-animation');
     }
-}
 
     showError(input, message) {
         input.classList.add('input-error');

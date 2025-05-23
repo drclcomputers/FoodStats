@@ -37,12 +37,17 @@ class AIManager {
     }
 
     async showSmartSuggestions() {
+        const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then(r => r.json());
+        if (!ingredients || ingredients.length === 0) {
+            showToast("Add at least one ingredient before calculating.");
+            return;
+        }
+
         if (!this.aiSection || !this.aiSuggestionsContainer) return;
         
         this.aiSection.style.display = 'block';
         this.aiSuggestionsContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div>Loading suggestions...</div>';
 
-        // Show hide button
         const hideBtn = document.querySelector(SELECTORS.HIDE_AI_BTN_CLASS);
         if (hideBtn) hideBtn.style.display = 'flex';
 
@@ -76,7 +81,6 @@ class AIManager {
             </div>
         `;
 
-        // Add click handlers for recipe titles
         this.attachRecipeClickHandlers();
     }
 
@@ -385,12 +389,10 @@ class AIManager {
     }
 }
 
-// Initialize AI functionality
 document.addEventListener('DOMContentLoaded', () => {
     new AIManager();
 });
 
-// Export hide function for global access
 window.hideAiSuggestions = () => {
     const aiSection = document.getElementById(SELECTORS.AI_SECTION);
     if (!aiSection) return;

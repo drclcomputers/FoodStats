@@ -17,6 +17,7 @@ html {
 }
 
 body {
+    animation: fadeInPage 0.7s ease;
     background: #f0f4f8;
     color: #222;
     font-family: 'Inter', Arial, sans-serif;
@@ -340,7 +341,7 @@ button:hover,
 }
 
 #totalOutput {
-    font-family: monospace;
+    text-align: center;
     border: 2px solid #52ab98;
 }
 

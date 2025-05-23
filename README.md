@@ -161,6 +161,8 @@ YOu can download the latest release and install it. When starting, the app will 
 ![FoodStats Healthy Recipes](/assets/img_1.png)
 ![FoodStats AI Suggestions](/assets/img_2.png)
 ![FoodStats Recommendations](/assets/img_3.png)
+![FoodStats Healthy Recipes](/assets/img_4.png)
+![FoodStats My Profile](/assets/img_5.png)
 
 ---
 
@@ -236,6 +238,27 @@ Give a ⭐️ if this project helped you!
 ---
 
 ## 📝 Changelog
+
+### Version 4.4.0
+
+- **UI/UX Improvements**
+  - Fade-in animation on page load for a smoother experience
+  - Improved mobile navigation: better touch feedback, clearer active/hover states, and horizontal nav layout option
+  - Enhanced dark mode contrast for navigation and menus
+  - More visible toast notifications and improved error feedback
+
+- **Performance & Stability**
+  - Faster ingredient and recipe list updates
+  - Optimized frontend code for better responsiveness
+
+- **Bug Fixes**
+  - Fixed nav item color issues in both light and dark mode
+  - Resolved issues with AI suggestions tab visibility
+  - Fixed export/import edge cases and improved error handling
+
+- **Miscellaneous**
+  - Updated dependencies (Electron, builder tools)
+  - Minor code cleanup and documentation updates
 
 ### Version 4.2.0
 
