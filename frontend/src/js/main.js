@@ -41,18 +41,18 @@ class IngredientManager {
 
     initializeEventListeners() {
         // Form submissions
-        this.form?.addEventListener("submit", (e) => this.handleAddIngredient(e));
+        this.form.addEventListener("submit", (e) => this.handleAddIngredient(e));
         
         // Input validations
-        this.nameInput?.addEventListener("input", () => this.clearError(this.nameInput));
-        this.gramsInput?.addEventListener("input", () => this.clearError(this.gramsInput));
+        this.nameInput.addEventListener("input", () => this.clearError(this.nameInput));
+        this.gramsInput.addEventListener("input", () => this.clearError(this.gramsInput));
         
         // Button listeners
-        this.calculateBtn?.addEventListener('click', () => this.calculateTotal());
-        this.resetBtn?.addEventListener('click', () => this.resetIngredients());
-        this.exportBtn?.addEventListener('click', () => this.exportIngredients());
-        this.importBtn?.addEventListener('click', () => this.importInput?.click());
-        this.importInput?.addEventListener('change', (e) => this.importIngredients(e));
+        this.calculateBtn.addEventListener('click', () => this.calculateTotal());
+        this.resetBtn.addEventListener('click', () => this.resetIngredients());
+        this.exportBtn.addEventListener('click', () => this.exportIngredients());
+        this.importBtn.addEventListener('click', () => this.importInput.click());
+        this.importInput.addEventListener('change', (e) => this.importIngredients(e));
         
         // Keyboard shortcuts
         this.setupKeyboardShortcuts();
@@ -237,6 +237,8 @@ class IngredientManager {
     }
 
     async addIngredient(name, grams) {
+        this.updateRecipeSource("🛠️ Custom Recipe");
+        localStorage.setItem("currentRecipe", "🛠️ Custom Recipe");
         return await fetchWithSession(`${API_BASE}/addingredient`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -312,15 +314,16 @@ class IngredientManager {
                 `${API_BASE}/deleteingredient?name=${encodeURIComponent(name)}`,{method: "DELETE",});
                 if (!response.ok) throw new Error("Failed to delete ingredient from server");
 
-                await this.fetchIngredients();
-
                 const ingredients = await fetchWithSession(`${API_BASE}/ingredients`).then((r) => r.json());
                 if (!ingredients || ingredients.length === 0) {
                     this.updateRecipeSource("");
                     localStorage.setItem("currentRecipe", "");
-
+                } else {
+                    this.updateRecipeSource("🛠️ Custom Recipe");
+                    localStorage.setItem("currentRecipe", "🛠️ Custom Recipe");
                 }
                 showToast(`Removed ${name}`);
+                this.fetchIngredients();
             } catch (error) {
                 console.error("Delete error:", error);
                 showToast(`Failed to delete ${name}.`);
@@ -335,7 +338,7 @@ class IngredientManager {
             console.warn(
             `Animationend event for ingredient ${name} did not fire. Processing deletion.`
             );
-            onAnimationEnd();
+           // onAnimationEnd();
         }
         }, 500);
     }
