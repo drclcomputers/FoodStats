@@ -343,6 +343,19 @@ class IngredientManager {
         }, 500);
     }
 
+     async calculateTotalMass() {
+        const items = this.ingredientList.querySelectorAll('li[data-name]');
+        let totalGrams = 0;
+        items.forEach(item => {
+            // Extract grams from text, e.g. "rice (100g): ..."
+            const match = item.textContent.match(/\((\d+(\.\d+)?)g\)/);
+            if (match) {
+                totalGrams += parseFloat(match[1]);
+            }
+        });
+        return totalGrams;
+    }
+
     async calculateTotal() {
         const btn = this.calculateBtn;
         if (!btn) return;
@@ -358,7 +371,10 @@ class IngredientManager {
             const res = await fetchWithSession(`${API_BASE}/calculate`);
             const data = await res.json();
 
+            const totalMass = await this.calculateTotalMass();
+
             let html = `
+                <strong>Mass:</strong> ${totalMass.toFixed(1)}g<br>
                 <strong>Calories:</strong> ${data.calories.toFixed(1)} kcal<br>
                 <strong>Proteins:</strong> ${data.proteins.toFixed(1)}g<br>
                 <strong>Carbs:</strong> ${data.carbs.toFixed(1)}g<br>
