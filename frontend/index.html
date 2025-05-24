@@ -13,6 +13,7 @@
     <link href="src/css/style.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="src/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 <nav class="navbar">
@@ -86,5 +87,10 @@
 <script src="src/js/darkmodescript.js"></script>
 <script src="src/js/scroll.js"></script>
 <script src="src/js/ai.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
 </body>
 </html>
